@@ -74,7 +74,7 @@ class CafeInfoView(APIView):
         try:
             payload = jwt.decode(token, 'secret', algorithms=['HS256'])
 
-        except jwt.ExpiredSignatureError:
+        except jwt.ExpiredSignatureError as e:
             return Response({"error":f"{e}"},status=status.HTTP_400_BAD_REQUEST)
 
         user = User.objects.filter(id=payload['id']).first()
@@ -94,3 +94,25 @@ class CafeInfoView(APIView):
             except Exception as e:
                 return Response({"error":""},status=status.HTTP_400_BAD_REQUEST)
         return Response({"error":"Bad body parameters"},status=status.HTTP_424_FAILED_DEPENDENCY)
+    
+class DeleteUser(APIView):
+   
+    def post(self, request, foramt = None):
+        token = request.COOKIES.get('jwt')
+        password = request.data['password']
+
+        if not token:
+            return Response({"error":"Unauthenticated User"},status=status.HTTP_400_BAD_REQUEST)
+        try:
+            payload = jwt.decode(token, 'secret', algorithms=['HS256'])
+
+        except jwt.ExpiredSignatureError as e:
+            return Response({"error":f"{e}"},status=status.HTTP_400_BAD_REQUEST)
+
+        user = User.objects.filter(id=payload['id']).first()
+
+        if not user.check_password(password):
+            return Response({"error":"Incorrect Password"},status=status.HTTP_400_BAD_REQUEST)
+        
+        user.delete()
+        return Response({"message":"User Deleted Successfully"}, status=status.HTTP_200_OK)
