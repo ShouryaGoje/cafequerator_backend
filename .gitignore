@@ -69,7 +69,6 @@ firebase-adminsdk.json
 *.swp
 
 # SSL Certificates
-*.pem
 
 # Static and media files
 /staticfiles/
