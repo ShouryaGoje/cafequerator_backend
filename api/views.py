@@ -87,3 +87,5 @@ class DeleteUser(APIView):
 class TruncateView(APIView):
     def post(self, request, format = None):
         User.objects.all().delete()
+
+        return Response({"message":"Data Gone"},status=status.HTTP_410_GONE)
