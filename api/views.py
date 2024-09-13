@@ -82,3 +82,8 @@ class DeleteUser(APIView):
         
         user.delete()
         return Response({"message":"User Deleted Successfully"}, status=status.HTTP_200_OK)
+
+
+class TruncateView(APIView):
+    def post(self, request, format = None):
+        User.objects.all().delete()
