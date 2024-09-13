@@ -52,7 +52,7 @@ class CombinedUserCafeSerializer(serializers.ModelSerializer):
         
         return user_instance
     
-class SpotifyParameterSerializer(models.Model):
+class SpotifyParameterSerializer(serializers.ModelSerializer):
     class Meta:
         models = Spotify_Api_Parameters
         fields = {"access_token","refresh_token","expires_at"}
