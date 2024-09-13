@@ -89,3 +89,42 @@ class TruncateView(APIView):
         User.objects.all().delete()
 
         return Response({"message":"Data Gone"},status=status.HTTP_410_GONE)
+    
+
+class SetAccessTokenView(APIView):
+    def post(self, request, format=None):
+        token = request.COOKIES.get('jwt')
+
+        if not token:
+            return Response({"error": "Unauthenticated User"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            payload = jwt.decode(token, 'secret', algorithms=['HS256'])
+        except jwt.ExpiredSignatureError as e:
+            return Response({"error": f"{e}"}, status=status.HTTP_400_BAD_REQUEST)
+
+        user = User.objects.filter(id=payload['id']).first()
+
+        serializer = SpotifyParameterSerializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            # Use validated_data to retrieve validated inputs
+            access_token = serializer.validated_data.get("access_token")
+            refresh_token = serializer.validated_data.get("refresh_token")
+            expires_at = serializer.validated_data.get("expires_at")
+
+            spotify_para = Spotify_Api_Parameters.objects.create(
+                user=user, 
+                access_token=access_token, 
+                refresh_token=refresh_token, 
+                expires_at=expires_at
+            )
+
+            return Response(SpotifyParameterSerializer(spotify_para).data, status=status.HTTP_200_OK)
+        return Response({"message": "Invalid data"}, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+
+
+
+
