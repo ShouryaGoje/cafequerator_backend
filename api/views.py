@@ -91,7 +91,7 @@ class TruncateView(APIView):
         return Response({"message":"Data Gone"},status=status.HTTP_410_GONE)
     
 
-class SetAccessTokenView(APIView):
+class SetTokenView(APIView):
     def post(self, request, format=None):
         token = request.COOKIES.get('jwt')
 
