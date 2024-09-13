@@ -91,7 +91,7 @@ class TruncateView(APIView):
         return Response({"message":"Data Gone"},status=status.HTTP_410_GONE)
     
 
-class SetTokenView(APIView):
+class SetAccessTokenView(APIView):
     def post(self, request, format=None):
         token = request.COOKIES.get('jwt')
 
@@ -113,7 +113,10 @@ class SetTokenView(APIView):
         if serializer.is_valid(raise_exception=True):
             access_token = serializer.validated_data.get("access_token")
             refresh_token = serializer.validated_data.get("refresh_token")
-            expires_at = serializer.validated_data.get("expires_at")
+            expires_at_str = serializer.validated_data.get("expires_at")
+
+            # Convert the ISO 8601 string to a Unix timestamp (integer)
+            expires_at = datetime.fromisoformat(expires_at_str.replace("Z", "+00:00")).timestamp()
 
             # Check if the Spotify parameters already exist for the user
             spotify_params, created = Spotify_Api_Parameters.objects.update_or_create(
@@ -121,7 +124,7 @@ class SetTokenView(APIView):
                 defaults={
                     "access_token": access_token,
                     "refresh_token": refresh_token,
-                    "expires_at": expires_at
+                    "expires_at": int(expires_at)  # Save the Unix timestamp as an integer
                 }
             )
 
