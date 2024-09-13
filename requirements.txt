@@ -39,6 +39,7 @@ PyJWT==2.9.0
 pyparsing==3.1.2
 python-dotenv==1.0.1
 python-jwt==2.0.1
+pytz==2024.2
 redis==5.0.6
 requests==2.32.3
 requests-toolbelt==0.7.0
