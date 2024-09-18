@@ -27,7 +27,7 @@ class Spotify_Api_Parameters(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     access_token = models.CharField(max_length=500)
     refresh_token = models.CharField(max_length=500)
-    expires_at = models.CharField()
+    expires_at = models.CharField(max_length=500)
 
 class Vibe_Check_Parameters(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)

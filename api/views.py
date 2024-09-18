@@ -34,20 +34,53 @@ class LoginView(APIView):
         }
         token = jwt.encode(payload, 'secret', algorithm='HS256')
 
-        cafe_info = Cafe_Info.objects.filter(user=user).first()
-        response = Response()
 
+        response = Response()
 
         response.set_cookie(key='jwt', value=token, httponly=True)
         response.data = {
-            'message': "token set",
-            "data": f"{CafeInfoSerializer(cafe_info).data}"
-
-        }
+            'message': "token set"}
 
         response.status_code = 200
         return response
     
+    def get(self,request):
+     
+        token = request.COOKIES.get('jwt')
+        # Check if the token exists
+        if not token:
+            return Response({"error": "Unauthenticated User"}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            # Decode the JWT token to get the payload
+            payload = jwt.decode(token, 'secret', algorithms=['HS256'])
+        except jwt.ExpiredSignatureError as e:
+            return Response({"error": f"{e}"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Find the user from the payload
+        user = User.objects.filter(id=payload['id']).first()
+        if user is None:
+            return Response({"error":"User Not Found"},status=status.HTTP_400_BAD_REQUEST)
+        
+
+        cafe_info = Cafe_Info.objects.filter(user=user).first()
+        token_info = Spotify_Api_Parameters.objects.filter(user=user).first()
+        response = Response()
+        
+
+        try:
+            token_info = { SpotifyParameterSerializer(token_info).data}
+        except:
+            token_info = "Not Set"
+
+        response.set_cookie(key='jwt', value=token, httponly=True)
+        response.data = {
+            "cafe_info": f"{CafeInfoSerializer(cafe_info).data}",
+            "token_info": f"{token_info}"
+        }
+
+        response.status_code = 200
+        return response
 
    
 
@@ -63,7 +96,7 @@ class LogoutView(APIView):
     
 class DeleteUser(APIView):
    
-    def post(self, request, foramt = None):
+    def delete(self, request, foramt = None):
         token = request.COOKIES.get('jwt')
         password = request.data['password']
 
@@ -127,6 +160,6 @@ class SetTokenView(APIView):
             )
 
             # Return the serialized data of the spotify_params
-            return Response(SpotifyParameterSerializer(spotify_params).data, status=status.HTTP_200_OK)
+            return Response({"message": "token set"}, status=status.HTTP_200_OK)
         
         return Response({"message": "Invalid data"}, status=status.HTTP_400_BAD_REQUEST)
