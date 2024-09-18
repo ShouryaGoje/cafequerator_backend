@@ -14,7 +14,7 @@ class SignupView(APIView):
         serializer = CombinedUserCafeSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save()
-        return Response(serializer.data)
+        return Response({"message":"Registeration Successfully"}, status=status.HTTP_200_OK)
     
 class LoginView(APIView):
     def post(self, request):
