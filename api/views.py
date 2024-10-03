@@ -69,11 +69,10 @@ class LoginView(APIView):
         
 
         try:
-            token_info = { SpotifyParameterSerializer(token_info).data}
+            token_info = SpotifyParameterSerializer(token_info).data
         except:
             token_info = "Not Set"
 
-        response.set_cookie(key='jwt', value=token, httponly=True)
         response.data = {
             "cafe_info": f"{CafeInfoSerializer(cafe_info).data}",
             "token_info": f"{token_info}"
