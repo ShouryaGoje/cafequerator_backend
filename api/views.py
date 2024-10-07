@@ -133,16 +133,20 @@ class SetTokenView(APIView):
 
         # Check if the token exists
         if not token:
-            return Response({"error": "Unauthenticated User"}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response({"error": "JWT token missing from cookies"}, status=status.HTTP_401_UNAUTHORIZED)
 
         try:
             # Decode the JWT token to get the payload
             payload = jwt.decode(token, 'secret', algorithms=['HS256'])
         except jwt.ExpiredSignatureError as e:
-            return Response({"error": f"{e}"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": f"Token expired: {e}"}, status=status.HTTP_400_BAD_REQUEST)
+        except jwt.InvalidTokenError as e:
+            return Response({"error": f"Invalid token: {e}"}, status=status.HTTP_400_BAD_REQUEST)
 
         # Find the user from the payload
         user = User.objects.filter(id=payload['id']).first()
+        if not user:
+            return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
         # Validate the incoming request data using the serializer
         serializer = SpotifyParameterSerializer(data=request.data)
@@ -150,7 +154,6 @@ class SetTokenView(APIView):
             access_token = serializer.validated_data.get("access_token")
             refresh_token = serializer.validated_data.get("refresh_token")
             expires_at = serializer.validated_data.get("expires_at")
-
 
             # Check if the Spotify parameters already exist for the user
             spotify_params, created = Spotify_Api_Parameters.objects.update_or_create(
@@ -162,7 +165,6 @@ class SetTokenView(APIView):
                 }
             )
 
-            # Return the serialized data of the spotify_params
-            return Response({"message": "token set"}, status=status.HTTP_200_OK)
+            return Response({"message": "Spotify token set"}, status=status.HTTP_200_OK)
         
-        return Response({"message": "Invalid data"}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"error": "Invalid data"}, status=status.HTTP_400_BAD_REQUEST)
