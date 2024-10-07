@@ -133,7 +133,7 @@ class SetTokenView(APIView):
 
         # Check if the token exists
         if not token:
-            return Response({"error": "Unauthenticated User"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": "Unauthenticated User"}, status=status.HTTP_401_UNAUTHORIZED)
 
         try:
             # Decode the JWT token to get the payload
