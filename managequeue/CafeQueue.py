@@ -13,11 +13,15 @@ class CafeQueue():
     def getqueue(self):
         dit = self.myQueue
         lst = []
+        flag = False
         while dit:  
             lst += sorted([(table_no, enl.pop(0)) for table_no, enl in dit.items() if enl], key=lambda x: x[1][2])
             dit = {table_no: enl for table_no, enl in dit.items() if enl}
+            flag = True
+        if flag:
+            lst = [(i[0], i[1][0], i[1][1])for i in lst]
         
-        return [(i[0], i[1][0], i[1][1])for i in lst]
+        return lst
     def remove(self, table_no):
         self.myQueue.pop(table_no)
 
