@@ -35,9 +35,7 @@ class Vibe_Check_Parameters(models.Model):
 
 class Track_Queue(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    Table_Number = models.IntegerField(default=-1)
-    Track_Name = models.CharField(max_length=255)
-    Track_Id = models.CharField(max_length=255)
+    Queue = models.BinaryField()
 
 class Tables_Queue(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)

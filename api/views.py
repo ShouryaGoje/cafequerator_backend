@@ -37,13 +37,14 @@ class LoginView(APIView):
 
         response = Response()
 
-        response.set_cookie(key='jwt',
-                             value=token, 
-                             httponly=True,
-                             samesite='None', 
-                             secure=True)
+        # response.set_cookie(key='jwt',
+        #                      value=token, 
+        #                      httponly=True,
+        #                      samesite='None', 
+        #                      secure=True)
         response.data = {
-            'message': "token set"}
+            'message': "token set",
+            'jwt': f"{token}"}
 
         response.status_code = 200
         return response
@@ -99,25 +100,31 @@ class LogoutView(APIView):
     
 class DeleteUser(APIView):
    
-    def delete(self, request, foramt = None):
-        token = request.COOKIES.get('jwt')
+    def delete(self, request, format=None):
+        # Get token from Authorization header
+        auth_header = request.headers.get('Authorization')
+        if not auth_header or not auth_header.startswith('Bearer '):
+            return Response({"error": "Authorization header missing or improperly formatted"}, status=status.HTTP_401_UNAUTHORIZED)
+
+        # Extract the token
+        token = auth_header.split(' ')[1]
         password = request.data['password']
 
         if not token:
-            return Response({"error":"Unauthenticated User"},status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": "Unauthenticated User"}, status=status.HTTP_401)
+
         try:
             payload = jwt.decode(token, 'secret', algorithms=['HS256'])
-
         except jwt.ExpiredSignatureError as e:
-            return Response({"error":f"{e}"},status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": f"{e}"}, status=status.HTTP_400_BAD_REQUEST)
 
         user = User.objects.filter(id=payload['id']).first()
 
         if not user.check_password(password):
-            return Response({"error":"Incorrect Password"},status=status.HTTP_400_BAD_REQUEST)
-        
+            return Response({"error": "Incorrect Password"}, status=status.HTTP_400_BAD_REQUEST)
+
         user.delete()
-        return Response({"message":"User Deleted Successfully"}, status=status.HTTP_200_OK)
+        return Response({"message": "User Deleted Successfully"}, status=status.HTTP_200_OK)
 
 
 class TruncateView(APIView):
@@ -129,7 +136,12 @@ class TruncateView(APIView):
 
 class SetTokenView(APIView):
     def post(self, request, format=None):
-        token = request.COOKIES.get('jwt')
+        auth_header = request.headers.get('Authorization')
+        if not auth_header or not auth_header.startswith('Bearer '):
+            return Response({"error": "Authorization header missing or improperly formatted"}, status=status.HTTP_401_UNAUTHORIZED)
+
+        # Extract the token
+        token = auth_header.split(' ')[1]
 
         # Check if the token exists
         if not token:
