@@ -32,7 +32,7 @@ class CafeQueue():
         return track
     
     def get_top(self):
-        return self.getqueue[0]
+        return self.getqueue()[0]
 
 
     def __reduce__(self):
