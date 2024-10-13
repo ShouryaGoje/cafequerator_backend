@@ -4,7 +4,7 @@ class CafeQueue():
     def __init__(self):
         self.myQueue = {}
     
-    def add(self, table_no, track_name, track_id, time):
+    def add(self, table_no : int, track_name : str , track_id, time : str):
         try:
             self.myQueue[table_no] += [(track_name, track_id, time)]
         except KeyError:
@@ -22,8 +22,18 @@ class CafeQueue():
             lst = [(i[0], i[1][0], i[1][1])for i in lst]
         
         return lst
-    def remove(self, table_no):
+    
+    def remove(self, table_no:int):
         self.myQueue.pop(table_no)
+
+    def poper(self):
+        track = self.getqueue()[0]
+        self.myQueue[track[0]].pop(0)
+        return track
+    
+    def get_top(self):
+        return self.getqueue[0]
+
 
     def __reduce__(self):
         # This returns a tuple of the class constructor and its arguments for reconstruction
