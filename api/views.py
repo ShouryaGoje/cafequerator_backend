@@ -81,14 +81,15 @@ class LoginView(APIView):
         response = Response()
         
 
-        try:
-            token_info = SpotifyParameterSerializer(token_info).data
-        except:
-            token_info = "Not Set"
+       
+        token_info = SpotifyParameterSerializer(token_info).data
+        if token_info["access_token"] == '':
+            token_info = "Not set"
+        
 
         response.data = {
-            "cafe_info": f"{CafeInfoSerializer(cafe_info).data}",
-            "token_info": f"{token_info}"
+            "cafe_info": CafeInfoSerializer(cafe_info).data,
+            "token_info": token_info
         }
 
         response.status_code = 200
