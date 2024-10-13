@@ -26,33 +26,28 @@ class Check_Vibe(APIView):
     
 class Add_Track(APIView):
     def post(self, request):
-        serializers = AddTrackSerializer(data = request.data)
-        if serializers.is_valid:
+        # Validate the incoming data using the serializer
+        serializer = AddTrackSerializer(data=request.data)
+        if serializer.is_valid():  # Corrected to call the method
+            # Check for the Authorization header and extract the JWT token
             auth_header = request.headers.get('Authorization')
             if not auth_header or not auth_header.startswith('Bearer '):
                 return Response({"error": "Authorization header missing or improperly formatted"}, status=status.HTTP_401_UNAUTHORIZED)
 
-            # Extract the token
             token = auth_header.split(' ')[1]
 
-            # Check if the token exists
-            if not token:
-                return Response({"error": "JWT token missing from cookies"}, status=status.HTTP_401_UNAUTHORIZED)
-
             try:
-                # Decode the JWT token to get the payload
+                # Decode the JWT token to get the user information
                 payload = jwt.decode(token, 'secret', algorithms=['HS256'])
             except jwt.ExpiredSignatureError as e:
                 return Response({"error": f"Token expired: {e}"}, status=status.HTTP_400_BAD_REQUEST)
             except jwt.InvalidTokenError as e:
                 return Response({"error": f"Invalid token: {e}"}, status=status.HTTP_400_BAD_REQUEST)
 
-            # Find the user from the payload
+            # Fetch the user from the decoded payload
             user = User.objects.filter(id=payload['id']).first()
             if not user:
                 return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
-            
-
 
             # Get or create the user's track queue
             track_queue, created = Track_Queue.objects.get_or_create(user=user)
@@ -64,7 +59,7 @@ class Add_Track(APIView):
                 return Response({"error": f"Failed to load queue: {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
             # Add the new track to the queue
-            data = serializers.validated_data
+            data = serializer.validated_data  # Now this will work
             cafe_queue.add(data['table_no'], data['track_name'], data['track_id'], datetime.datetime.now())
 
             # Serialize the updated queue and save it back to the database
@@ -72,7 +67,8 @@ class Add_Track(APIView):
             track_queue.save()
 
             return Response({"Queue": f"{cafe_queue.getqueue()}"}, status=status.HTTP_200_OK)
-        return Response({"error": f"Bad request"} ,status=status.HTTP_400_BAD_REQUEST)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)  # Return detailed serializer errors
 
 
 
