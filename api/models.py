@@ -2,7 +2,10 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 from datetime import datetime
 import pytz
+import pickle
+from managequeue.CafeQueue import CafeQueue as cq
 
+empty_queue = pickle.dumps(cq())
 
 # Create your models here.
 class User(AbstractUser):
@@ -35,7 +38,7 @@ class Vibe_Check_Parameters(models.Model):
 
 class Track_Queue(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    Queue = models.BinaryField()
+    Queue = models.BinaryField(default=empty_queue)
 
 class Tables_Queue(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)

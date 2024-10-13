@@ -19,3 +19,9 @@ class AudioFeaturesSerializer(serializers.Serializer):
     tempo = serializers.FloatField()
     time_signature = serializers.IntegerField()
     valence = serializers.FloatField()
+
+
+class AddTrackSerializer(serializers.Serializer):
+    table_no = serializers.IntegerField()
+    track_name = serializers.CharField(max_length=255)
+    track_id = serializers.CharField(max_length=255)

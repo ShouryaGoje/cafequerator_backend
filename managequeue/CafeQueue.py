@@ -1,30 +1,62 @@
-from datetime import datetime
+import copy
 
 class CafeQueue():
     def __init__(self):
         self.myQueue = {}
     
-    def add(self, table_no, track_name, time):
+    def add(self, table_no, track_name, track_id, time):
         try:
-            self.myQueue[table_no] += [(track_name, time)]
+            self.myQueue[table_no] += [(track_name, track_id, time)]
         except KeyError:
-            self.myQueue[table_no] = [(track_name, time)]
+            self.myQueue[table_no] = [(track_name, track_id, time)]
 
     def getqueue(self):
-        # Flatten the dictionary into a list of tuples (table_no, track_name, time)
-        flattened_queue = [(table_no, track_name, time) for table_no, tracks in self.myQueue.items() for track_name, time in tracks]
+        dit = self.myQueue
+        lst = []
+        while dit:  
+            lst += sorted([(table_no, enl.pop(0)) for table_no, enl in dit.items() if enl], key=lambda x: x[1][2])
+            dit = {table_no: enl for table_no, enl in dit.items() if enl}
         
-        # Sort by table_no first, then by time
-        sorted_queue = sorted(flattened_queue, key=lambda x: (x[2], x[0]))
-        
-        return sorted_queue
+        return [(i[0], i[1][0], i[1][1])for i in lst]
+    def remove(self, table_no):
+        self.myQueue.pop(table_no)
+
+    def __reduce__(self):
+        # This returns a tuple of the class constructor and its arguments for reconstruction
+        return (self.__class__, (), copy.deepcopy(self.__dict__))
+
+
+
+
+
 
 if __name__ == '__main__':
+    from datetime import datetime
+    import time
     c = CafeQueue()
 
-    c.add(3, 'test1', datetime.now())
-    c.add(3, 'test2', datetime.now())
-    c.add(3, 'test3', datetime.now())
-    c.add(1, 'test1', datetime.now())
+    c.add(3, '1', datetime.now())
+    time.sleep(2)
+    c.add(3, '5', datetime.now())
+    time.sleep(2)
+    c.add(3, '8', datetime.now())
+    time.sleep(2)
+    c.add(1, '2', datetime.now())
+    time.sleep(2)
+    c.add(1, '6', datetime.now())
+    time.sleep(2)
+    c.add(2, '3', datetime.now())
+    time.sleep(2)
+    c.add(3, '11', datetime.now())
+    time.sleep(2)
+    c.add(1, '9', datetime.now())
+    time.sleep(2)
+    c.add(2, '7', datetime.now())
+    time.sleep(2)
+    c.add(2, '10', datetime.now())
+    time.sleep(2)
+    c.add(5, '4', datetime.now())
+    time.sleep(2)
+    c.add(3, '12', datetime.now())
 
-    print('Testing :', c.getqueue())
+    print('Testing :',c.getqueue())
