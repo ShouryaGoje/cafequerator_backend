@@ -2,12 +2,18 @@ from rest_framework.views import APIView, status
 from rest_framework.response import Response
 from rest_framework.exceptions import AuthenticationFailed
 from .serializers import *
-from .models import User
+from .models import *
 import jwt, datetime
 from datetime import datetime, timedelta, timezone
-
-
-
+import io
+import qrcode
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import A4
+from django.http import HttpResponse
+from .models import Cafe_Info, Tables_Queue
+from PIL import Image
+import tempfile
+import os
 
 class SignupView(APIView):
     def post(self, request):
@@ -189,3 +195,83 @@ class SetTokenView(APIView):
             return Response({"message": "Spotify token set"}, status=status.HTTP_200_OK)
         
         return Response({"error": "Invalid data"}, status=status.HTTP_400_BAD_REQUEST)
+    
+
+
+
+class PdfAPIView(APIView):
+    def post(self, request, format=None):
+        # Get authorization header
+        auth_header = request.headers.get('Authorization')
+        if not auth_header or not auth_header.startswith('Bearer '):
+            return Response({"error": "Authorization header missing or improperly formatted"}, status=status.HTTP_401_UNAUTHORIZED)
+
+        # Extract the token
+        token = auth_header.split(' ')[1]
+
+        # Check if the token exists
+        if not token:
+            return Response({"error": "JWT token missing"}, status=status.HTTP_401_UNAUTHORIZED)
+
+        try:
+            # Decode the JWT token to get the payload
+            payload = jwt.decode(token, 'secret', algorithms=['HS256'])
+        except jwt.ExpiredSignatureError as e:
+            return Response({"error": f"Token expired: {e}"}, status=status.HTTP_400_BAD_REQUEST)
+        except jwt.InvalidTokenError as e:
+            return Response({"error": f"Invalid token: {e}"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Find the user from the payload
+        user = User.objects.filter(id=payload['id']).first()
+        if not user:
+            return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        # Fetch cafe info using user
+        try:
+            cafe_info = Cafe_Info.objects.get(user=user)
+            cafe_name = cafe_info.Cafe_Name
+            no_of_tables = cafe_info.No_of_Tables  # Fetching No_of_Tables from Cafe_Info
+        except Cafe_Info.DoesNotExist:
+            return Response({"error": "Cafe not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        # Set up PDF response
+        buffer = io.BytesIO()
+        pdf = canvas.Canvas(buffer, pagesize=A4)
+        width, height = A4
+
+        base_url = "http://your_url.com"  # Hardcoded URL
+
+        # Generate QR codes for each table
+        for table_num in range(1, no_of_tables + 1):
+            # Create the URL
+            qr_url = f"{base_url}/{cafe_name}/table/{table_num}"
+
+            # Generate QR code using Pillow (PIL)
+            qr = qrcode.make(qr_url)  # This returns a PIL Image object
+
+            # Save the QR code to a temporary file
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as tmp_file:
+                qr.save(tmp_file, format='PNG')  # Save it as a PNG image
+                tmp_file_path = tmp_file.name  # Get the temporary file path
+
+            # Place the QR code on the PDF page
+            pdf.drawImage(tmp_file_path, (width - 300) / 2, (height - 300) / 2, 300, 300)
+
+            # Add a new page for the next table
+            pdf.showPage()
+
+            # Optionally, delete the temporary file after it's used
+            os.remove(tmp_file_path)
+
+        # Save the PDF
+        pdf.save()
+        buffer.seek(0)
+
+        # Create a response with the PDF content
+        response = HttpResponse(
+            buffer.getvalue(),
+            content_type='application/pdf'
+        )
+        response['Content-Disposition'] = f'attachment; filename="{cafe_name}_table_qrcodes.pdf"'
+
+        return response
