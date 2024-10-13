@@ -170,7 +170,7 @@ class Next_Track(APIView):
         return Response({"message": f"success"}, status=status.HTTP_200_OK)
 
 
-class Remove_table(APIView):
+class Remove_Table(APIView):
     def post(self, request):
         # Validate the incoming data using the serializer
         serializer = RemoveTableSerializer(data=request.data)
