@@ -27,7 +27,7 @@ class CafeQueue():
         self.myQueue.pop(table_no)
 
     def poper(self):
-        self.myQueue[self.getqueue()[0][0]].pop(0)
+        self.myQueue[int(self.get_top()[0])].pop(0)
     
     def get_top(self):
         return self.getqueue()[0]

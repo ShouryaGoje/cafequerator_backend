@@ -167,6 +167,9 @@ class Next_Track(APIView):
         except Exception as e:
             return Response({"error": f"Failed to load queue: {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         cafe_queue.poper()
+        # Serialize the updated queue and save it back to the database
+        track_queue.Queue = pickle.dumps(cafe_queue)
+        track_queue.save()
         return Response({"message": f"success"}, status=status.HTTP_200_OK)
 
 
@@ -207,6 +210,10 @@ class Remove_Table(APIView):
             # Add the new track to the queue
             data = serializer.validated_data  # Now this will work
             cafe_queue.remove(data['table_no'])
+
+            # Serialize the updated queue and save it back to the database
+            track_queue.Queue = pickle.dumps(cafe_queue)
+            track_queue.save()
 
             return Response({"message": f"success"}, status=status.HTTP_200_OK)
         
