@@ -34,7 +34,7 @@ class LoginView(APIView):
 
             response.status_code = 200
             return response
-        return Response({"message":"noooooo"}, status=status.HTTP_400_BAD_REQUEST) 
+        return Response({"message":"nooooooo"}, status=status.HTTP_400_BAD_REQUEST) 
 
 
 class GetAccessToken(APIView):
