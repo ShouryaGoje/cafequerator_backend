@@ -94,7 +94,8 @@ class LoginView(APIView):
 
         response.data = {
             "cafe_info": CafeInfoSerializer(cafe_info).data,
-            "token_info": token_info
+            "token_info": token_info,
+            "id":payload['id']
         }
 
         response.status_code = 200
@@ -260,16 +261,7 @@ class PdfAPIView(APIView):
                 tmp_file_path = tmp_file.name  # Get the temporary file path
 
             # Place the QR code on the PDF page
-            qr_x_position = (width - 300) / 2  # Horizontal center
-            qr_y_position = (height - 300) / 2 + 100  # Positioned slightly higher to leave space for text below
-
-            pdf.drawImage(tmp_file_path, qr_x_position, qr_y_position, 300, 300)
-
-            # Add the "Table No. X" text below the QR code
-            text_x_position = (width - 300) / 2 + 100  # Center text below the QR code
-            text_y_position = qr_y_position - 40  # Position text 40 units below the QR code
-            pdf.setFont("Helvetica", 14)  # Set font and size for the table number text
-            pdf.drawString(text_x_position, text_y_position, f"Table No. {table_num}")
+            pdf.drawImage(tmp_file_path, (width - 300) / 2, (height - 300) / 2, 300, 300)
 
             # Add a new page for the next table
             pdf.showPage()
