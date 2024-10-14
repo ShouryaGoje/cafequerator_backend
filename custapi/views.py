@@ -8,11 +8,11 @@ from datetime import datetime, timedelta, timezone
 
 
 class LoginView(APIView):
-    def post(self, request):
+    def get(self, request):
         serializer = LoginSerializer(data = request.data)
 
         if serializer.is_valid():
-            id = serializer.validated_data['id']
+            cafeId = serializer.validated_data['cafeId']
             user = User.objects.filter(id=id).first()
             if user is None:
                 return Response({"error":"User Not Found"},status=status.HTTP_400_BAD_REQUEST)
@@ -29,7 +29,7 @@ class LoginView(APIView):
 
             response.data = {
                 'message': "token set",
-                'jwt': f"{token}"}
+                'cjwt': f"{token}"}
 
             response.status_code = 200
             return response
