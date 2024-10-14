@@ -13,7 +13,7 @@ class LoginView(APIView):
 
         if serializer.is_valid():
             cafeId = serializer.validated_data['cafeId']
-            user = User.objects.filter(id=id).first()
+            user = User.objects.filter(id=cafeId).first()
             if user is None:
                 return Response({"error":"User Not Found"},status=status.HTTP_400_BAD_REQUEST)
             payload = {
