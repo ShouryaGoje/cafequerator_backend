@@ -94,8 +94,7 @@ class LoginView(APIView):
 
         response.data = {
             "cafe_info": CafeInfoSerializer(cafe_info).data,
-            "token_info": token_info,
-            "id":payload['id']
+            "token_info": token_info
         }
 
         response.status_code = 200
