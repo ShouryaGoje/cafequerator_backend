@@ -13,7 +13,7 @@ class LoginView(APIView):
         serializer = LoginSerializer(data = request.data)
 
         if serializer.is_valid():
-            cafeId = serializer.validated_data['cafeId']
+            cafeId = int(serializer.validated_data['cafeId'])
             user = User.objects.filter(id=cafeId).first()
             if user is None:
                 return Response({"error":"User Not Found"},status=status.HTTP_400_BAD_REQUEST)
