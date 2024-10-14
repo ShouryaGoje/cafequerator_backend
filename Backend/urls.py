@@ -25,6 +25,7 @@ urlpatterns = [
     path('api-auth/', include('rest_framework.urls')),
     path('api/',include("api.urls")),
     path('managequeue/',include("managequeue.urls")),
+    path('customer/api',include("custapi.urls")),
  
    
 ]

@@ -35,6 +35,7 @@ class LoginView(APIView):
             return Response({"error":"Incorrect Password"},status=status.HTTP_400_BAD_REQUEST)
         payload = {
             'id': user.id,
+            'auth': 'Admin',
             'exp': datetime.now(timezone.utc) + timedelta(weeks=4),
             'iat': datetime.now(timezone.utc)
         }
@@ -43,11 +44,6 @@ class LoginView(APIView):
 
         response = Response()
 
-        # response.set_cookie(key='jwt',
-        #                      value=token, 
-        #                      httponly=True,
-        #                      samesite='None', 
-        #                      secure=True)
         response.data = {
             'message': "token set",
             'jwt': f"{token}"}
@@ -75,6 +71,9 @@ class LoginView(APIView):
             return Response({"error": f"Token expired: {e}"}, status=status.HTTP_400_BAD_REQUEST)
         except jwt.InvalidTokenError as e:
             return Response({"error": f"Invalid token: {e}"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        if payload['auth']!= 'Admin':
+            return Response({"error": "API Access not authorized"}, status=status.HTTP_401_UNAUTHORIZED)
 
         # Find the user from the payload
         user = User.objects.filter(id=payload['id']).first()
@@ -132,6 +131,8 @@ class DeleteUser(APIView):
             payload = jwt.decode(token, 'secret', algorithms=['HS256'])
         except jwt.ExpiredSignatureError as e:
             return Response({"error": f"{e}"}, status=status.HTTP_400_BAD_REQUEST)
+        if payload['auth']!= 'Admin':
+            return Response({"error": "API Access not authorized"}, status=status.HTTP_401_UNAUTHORIZED)
 
         user = User.objects.filter(id=payload['id']).first()
 
@@ -169,6 +170,8 @@ class SetTokenView(APIView):
             return Response({"error": f"Token expired: {e}"}, status=status.HTTP_400_BAD_REQUEST)
         except jwt.InvalidTokenError as e:
             return Response({"error": f"Invalid token: {e}"}, status=status.HTTP_400_BAD_REQUEST)
+        if payload['auth']!= 'Admin':
+            return Response({"error": "API Access not authorized"}, status=status.HTTP_401_UNAUTHORIZED)
 
         # Find the user from the payload
         user = User.objects.filter(id=payload['id']).first()
@@ -220,6 +223,8 @@ class PdfAPIView(APIView):
             return Response({"error": f"Token expired: {e}"}, status=status.HTTP_400_BAD_REQUEST)
         except jwt.InvalidTokenError as e:
             return Response({"error": f"Invalid token: {e}"}, status=status.HTTP_400_BAD_REQUEST)
+        if payload['auth']!= 'Admin':
+            return Response({"error": "API Access not authorized"}, status=status.HTTP_401_UNAUTHORIZED)
 
         # Find the user from the payload
         user = User.objects.filter(id=payload['id']).first()
