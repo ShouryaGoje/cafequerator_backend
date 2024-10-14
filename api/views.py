@@ -35,7 +35,7 @@ class LoginView(APIView):
             return Response({"error":"Incorrect Password"},status=status.HTTP_400_BAD_REQUEST)
         payload = {
             'id': user.id,
-            'exp': datetime.now(timezone.utc) + timedelta(minutes=60),
+            'exp': datetime.now(timezone.utc) + timedelta(weeks=4),
             'iat': datetime.now(timezone.utc)
         }
         token = jwt.encode(payload, 'secret', algorithm='HS256')
