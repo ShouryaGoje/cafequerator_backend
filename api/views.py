@@ -249,7 +249,7 @@ class PdfAPIView(APIView):
         # Generate QR codes for each table
         for table_num in range(1, no_of_tables + 1):
             # Create the URL
-            qr_url = f"{base_url}/{cafe_name}/table/{table_num}"
+            qr_url = f"{base_url}/{cafe_name}/table/{table_num}/?id={user.id}"
 
             # Generate QR code using Pillow (PIL)
             qr = qrcode.make(qr_url)  # This returns a PIL Image object
