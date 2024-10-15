@@ -9,20 +9,6 @@ import pickle
 
 # Create your views here.
  
-
-class Check_Vibe(APIView):
-    
-    def post(self, request):
-        serializer = AudioFeaturesSerializer(data = request.data)
-        if serializer.is_valid(raise_exception=True):
-            #dummy if else
-            if True:
-                return Response({'message': 'vibe match'}, status = status.HTTP_202_ACCEPTED)
-            
-            else:
-                pass
-
-        return Response({"error": "Invalid data"}, status=status.HTTP_400_BAD_REQUEST)
     
 class Add_Track(APIView):
     def post(self, request):
@@ -43,8 +29,12 @@ class Add_Track(APIView):
                 return Response({"error": f"Token expired: {e}"}, status=status.HTTP_400_BAD_REQUEST)
             except jwt.InvalidTokenError as e:
                 return Response({"error": f"Invalid token: {e}"}, status=status.HTTP_400_BAD_REQUEST)
-            if payload['auth']!= 'Admin':
+            if payload['auth']!= 'Admin' or payload['auth'] != "Cust":
                 return Response({"error": "API Access not authorized"}, status=status.HTTP_401_UNAUTHORIZED)
+
+
+            
+                
 
             # Fetch the user from the decoded payload
             user = User.objects.filter(id=payload['id']).first()
@@ -59,9 +49,19 @@ class Add_Track(APIView):
                 cafe_queue = pickle.loads(track_queue.Queue) if track_queue.Queue else cq()
             except Exception as e:
                 return Response({"error": f"Failed to load queue: {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            
+
 
             # Add the new track to the queue
             data = serializer.validated_data  # Now this will work
+
+            if payload['auth'] == "Cust":
+                if False : #vibe check here
+                    return Response({"message":"Vibe not match"}, status=status.HTTP_403_FORBIDDEN)
+                else :
+                    pass
+
+                
             cafe_queue.add(data['table_no'], data['track_name'], data['track_id'], datetime.datetime.now())
 
             # Serialize the updated queue and save it back to the database
