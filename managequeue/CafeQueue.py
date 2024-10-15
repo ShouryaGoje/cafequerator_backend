@@ -4,14 +4,14 @@ class CafeQueue():
     def __init__(self):
         self.myQueue = {}
     
-    def add(self, table_no : int, track_name : str , track_id, time : str):
+    def add(self, table_no : int, track_name : str , time : str, track_id = 0):
         try:
             self.myQueue[table_no] += [(track_name, track_id, time)]
         except KeyError:
             self.myQueue[table_no] = [(track_name, track_id, time)]
 
     def getqueue(self):
-        dit = self.myQueue
+        dit = copy.deepcopy(self.myQueue)
         lst = []
         flag = False
         while dit:  
@@ -71,4 +71,4 @@ if __name__ == '__main__':
     time.sleep(2)
     c.add(3, '12', datetime.now())
 
-    print('Testing :',c.getqueue())
+    print('Testing :',c.getqueue(),  c.myQueue)
