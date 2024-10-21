@@ -65,7 +65,7 @@ class Add_Track(APIView):
 
             if payload['auth'] == "Cust":
                 track_id = data['track_id']
-                if self.Vibe_Check(user, track_id) : #vibe check here
+                if self.Vibe_Check(user, track_id) == False : #vibe check here
                     return Response({"message":"Vibe not match"}, status=status.HTTP_403_FORBIDDEN)
                 else :
                     pass
@@ -116,7 +116,7 @@ class Add_Track(APIView):
         similarity = cosine_similarity(track_vector, playlist_vector)
 
         # Step 6: Define a threshold for similarity and return True/False
-        threshold = float(env('Vibe_Threshold', default='0.75'))  # Adjust the threshold as per your requirement
+        threshold = float(env('Vibe_Threshold', default='0.0'))  # Adjust the threshold as per your requirement
         if similarity[0][0] >= threshold:
             return True
         else:
