@@ -4,7 +4,7 @@ class CafeQueue():
     def __init__(self):
         self.myQueue = {}
     
-    def add(self, table_no : int, track_name : str , track_id, time : str):
+    def add(self, table_no : int, track_name : str ,time : str, track_id = 0):
         try:
             self.myQueue[table_no] += [(track_name, track_id, time)]
         except KeyError:
@@ -27,7 +27,7 @@ class CafeQueue():
         self.myQueue.pop(table_no)
 
     def poper(self):
-        self.myQueue[int(self.get_top()[0])].pop(0)
+        self.myQueue[int(self.get_top()[0])] = self.myQueue[int(self.get_top()[0])].pop(0)
     
     def get_top(self):
         return self.getqueue()[0]
@@ -71,4 +71,4 @@ if __name__ == '__main__':
     time.sleep(2)
     c.add(3, '12', datetime.now())
 
-    print('Testing :',c.getqueue())
+    print('Testing :',c.getqueue(), c.myQueue)

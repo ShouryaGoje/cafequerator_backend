@@ -7,5 +7,4 @@ urlpatterns = [
     path('get-queue', Get_Queue.as_view()),
     path('next-track', Next_Track.as_view()),
     path('remove-table', Remove_Table.as_view()),
-
 ]
