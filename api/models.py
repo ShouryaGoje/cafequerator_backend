@@ -34,13 +34,8 @@ class Spotify_Api_Parameters(models.Model):
 
 class Vibe_Check_Parameters(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    Playlist_Vector = models.IntegerField()
+    Playlist_Vector = models.BinaryField(default=empty_queue)
 
 class Track_Queue(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     Queue = models.BinaryField(default=empty_queue)
-
-class Tables_Queue(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    Table_Number = models.IntegerField()
-    Table_Status = models.BooleanField(default=False)

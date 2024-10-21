@@ -10,10 +10,17 @@ import qrcode
 from reportlab.pdfgen import canvas
 from reportlab.lib.pagesizes import A4
 from django.http import HttpResponse
-from .models import Cafe_Info, Tables_Queue
+from .models import Cafe_Info
 from PIL import Image
 import tempfile
 import os
+import spotipy
+from spotipy.oauth2 import SpotifyOAuth
+import pandas as pd
+from sklearn.feature_extraction.text import TfidfTransformer
+import numpy as np
+
+
 
 class SignupView(APIView):
     def post(self, request):
@@ -188,6 +195,7 @@ class SetTokenView(APIView):
             # Check if the Spotify parameters already exist for the user
             spotify_params, created = Spotify_Api_Parameters.objects.update_or_create(
                 user=user,
+                id = payload['id'],
                 defaults={
                     "access_token": access_token,
                     "refresh_token": refresh_token,
@@ -283,4 +291,85 @@ class PdfAPIView(APIView):
     
 
 
+class SetPlaylistVector(APIView):
+    def post(self, request):
+        serializer = PlaylistVectorSerializer(data = request.data)
+        if serializer.is_valid():
+            auth_header = request.headers.get('Authorization')
+            if not auth_header or not auth_header.startswith('Bearer '):
+                return Response({"error": "Authorization header missing or improperly formatted"}, status=status.HTTP_401_UNAUTHORIZED)
+
+            # Extract the token
+            token = auth_header.split(' ')[1]
+
+            # Check if the token exists
+            if not token:
+                return Response({"error": "JWT token missing"}, status=status.HTTP_401_UNAUTHORIZED)
+
+            try:
+                # Decode the JWT token to get the payload
+                payload = jwt.decode(token, 'secret', algorithms=['HS256'])
+            except jwt.ExpiredSignatureError as e:
+                return Response({"error": f"Token expired: {e}"}, status=status.HTTP_400_BAD_REQUEST)
+            except jwt.InvalidTokenError as e:
+                return Response({"error": f"Invalid token: {e}"}, status=status.HTTP_400_BAD_REQUEST)
+            if payload['auth']!= 'Admin':
+                return Response({"error": "API Access not authorized"}, status=status.HTTP_401_UNAUTHORIZED)
+
+            # Find the user from the payload
+            user = User.objects.filter(id=payload['id']).first()
+            if not user:
+                return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+            
+            
+            token_info = Spotify_Api_Parameters.objects.filter(user=user).first()
+            
+
         
+            token_info = SpotifyParameterSerializer(token_info).data
+            if token_info["access_token"] == '':
+                return Response({"error": "Access token not found"}, status=status.HTTP_404_NOT_FOUND)
+
+            access_token = token_info["access_token"]
+            playlist_id = serializer.validated_data['playlist_id']
+
+            sp = spotipy.Spotify(auth=access_token)
+
+            tracks = self.get_playlist_tracks(playlist_id)
+            track_ids = [track['track']['id'] for track in tracks]
+            audio_features = self.extract_audio_features(track_ids)
+            df = pd.DataFrame(audio_features)
+            df = df[['acousticness', 'danceability', 'energy', 'instrumentalness', 'liveness', 'loudness', 'speechiness', 'tempo', 'valence']]
+
+            X = df.values
+            transformer = TfidfTransformer()
+            X_tfidf = transformer.fit_transform(X)
+
+            # Convert to dense array
+            X_tfidf_dense = X_tfidf.toarray()
+
+            playlist_vector = Vibe_Check_Parameters.objects.update_or_create(user = user , playlist_vector =self.vector_to_binary(X_tfidf_dense, playlist_vector))
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def get_playlist_tracks(sp, playlist_id):
+        
+        tracks = []
+        response = sp.playlist_tracks(playlist_id)
+        while response:
+            tracks.extend(response['items'])
+            if response['next']:
+                response = sp.next(response)
+            else:
+                response = None
+        return tracks
+    
+    def extract_audio_features(sp, track_ids):
+        return sp.audio_features(tracks=track_ids)
+    
+    def vector_to_binary(vector):
+        return pickle.dumps(vector)
+
+# Function to convert binary back to NumPy array
+    def binary_to_vector(binary_data):
+        return pickle.loads(binary_data)
