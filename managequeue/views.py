@@ -116,7 +116,7 @@ class Add_Track(APIView):
         similarity = cosine_similarity(track_vector, playlist_vector)
 
         # Step 6: Define a threshold for similarity and return True/False
-        threshold = int(env('Vibe_Threshold', default='0.75'))  # Adjust the threshold as per your requirement
+        threshold = float(env('Vibe_Threshold', default='0.75'))  # Adjust the threshold as per your requirement
         if similarity[0][0] >= threshold:
             return True
         else:
