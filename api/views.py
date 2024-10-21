@@ -280,3 +280,7 @@ class PdfAPIView(APIView):
         response['Content-Disposition'] = f'attachment; filename="{cafe_name}_table_qrcodes.pdf"'
 
         return response
+    
+
+
+        
