@@ -59,14 +59,13 @@ class Add_Track(APIView):
                 cafe_queue = pickle.loads(track_queue.Queue) if track_queue.Queue else cq()
             except Exception as e:
                 return Response({"error": f"Failed to load queue: {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-            
-
 
             # Add the new track to the queue
             data = serializer.validated_data  # Now this will work
 
             if payload['auth'] == "Cust":
-                if self.Vibe_Check(user, data['track_id']) : #vibe check here
+                track_id = data['track_id']
+                if self.Vibe_Check(user, track_id) : #vibe check here
                     return Response({"message":"Vibe not match"}, status=status.HTTP_403_FORBIDDEN)
                 else :
                     pass
