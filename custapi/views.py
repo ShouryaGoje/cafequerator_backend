@@ -13,13 +13,15 @@ class LoginView(APIView):
         try:
             serializer = LoginSerializer(data = request.data)
             if serializer.is_valid():
-                cafeId = int(serializer.validated_data['cafeId'])
+                cafeId = serializer.validated_data['cafeId']
+                tableNum = serializer.validated_data['tableNum']
                 user = User.objects.filter(id=cafeId).first()
                 if user is None:
                     return Response({"error":"User Not Found"},status=status.HTTP_400_BAD_REQUEST)
                 payload = {
                     'id': user.id,
                     'auth': 'Cust',
+                    'tableNum': tableNum,
                     'exp': datetime.now(timezone.utc) + timedelta(hours=2),
                     'iat': datetime.now(timezone.utc)
                 }
