@@ -58,10 +58,10 @@ class SpotifyParameterSerializer(serializers.ModelSerializer):
         fields = ["access_token","refresh_token","expires_at"]
 
 
-class PlaylistVectorSerializer(serializers.ModelSerializer):
+class PlaylistVectorSerializer(serializers.Serializer):
 
     playlist_name = serializers.CharField()
     playlist_id = serializers.CharField()
-    
+
 
             
