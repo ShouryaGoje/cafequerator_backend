@@ -43,6 +43,7 @@ class LoginView(APIView):
         payload = {
             'id': user.id,
             'auth': 'Admin',
+            'tableNum':0,
             'exp': datetime.now(timezone.utc) + timedelta(weeks=4),
             'iat': datetime.now(timezone.utc)
         }

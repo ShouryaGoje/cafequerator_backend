@@ -70,7 +70,7 @@ class Add_Track(APIView):
                 else :
                     pass
      
-            cafe_queue.add(data['table_no'], data['track_name'], data['track_id'], datetime.datetime.now())
+            cafe_queue.add(payload['tableNum'], data['track_name'], data['track_id'], datetime.datetime.now())
 
             # Serialize the updated queue and save it back to the database
             track_queue.Queue = pickle.dumps(cafe_queue)
@@ -80,7 +80,7 @@ class Add_Track(APIView):
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)  # Return detailed serializer errors
     
-    def Vibe_Check(user, track_id):
+    def Vibe_Check(self, user, track_id):
         
         # Step 1: Retrieve the user's playlist vector from the database
         try:
