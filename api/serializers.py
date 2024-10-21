@@ -57,4 +57,11 @@ class SpotifyParameterSerializer(serializers.ModelSerializer):
         model = Spotify_Api_Parameters
         fields = ["access_token","refresh_token","expires_at"]
 
+
+class PlaylistVectorSerializer(serializers.ModelSerializer):
+
+    playlist_name = serializers.CharField()
+    playlist_id = serializers.CharField()
+    
+
             

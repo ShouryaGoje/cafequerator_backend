@@ -293,7 +293,7 @@ class PdfAPIView(APIView):
 
 class SetPlaylistVector(APIView):
     def post(self, request):
-        serializer = PlaylistVectorSerializer(data = request.data)
+        serializer = PlaylistVectorSerializer(data=request.data)
         if serializer.is_valid():
             auth_header = request.headers.get('Authorization')
             if not auth_header or not auth_header.startswith('Bearer '):
@@ -313,19 +313,18 @@ class SetPlaylistVector(APIView):
                 return Response({"error": f"Token expired: {e}"}, status=status.HTTP_400_BAD_REQUEST)
             except jwt.InvalidTokenError as e:
                 return Response({"error": f"Invalid token: {e}"}, status=status.HTTP_400_BAD_REQUEST)
-            if payload['auth']!= 'Admin':
+
+            # Check if the user has the correct authorization
+            if payload['auth'] != 'Admin':
                 return Response({"error": "API Access not authorized"}, status=status.HTTP_401_UNAUTHORIZED)
 
             # Find the user from the payload
             user = User.objects.filter(id=payload['id']).first()
             if not user:
                 return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
-            
-            
-            token_info = Spotify_Api_Parameters.objects.filter(user=user).first()
-            
 
-        
+            # Get the user's Spotify access token from the database
+            token_info = Spotify_Api_Parameters.objects.filter(user=user).first()
             token_info = SpotifyParameterSerializer(token_info).data
             if token_info["access_token"] == '':
                 return Response({"error": "Access token not found"}, status=status.HTTP_404_NOT_FOUND)
@@ -333,27 +332,41 @@ class SetPlaylistVector(APIView):
             access_token = token_info["access_token"]
             playlist_id = serializer.validated_data['playlist_id']
 
+            # Initialize Spotify client with access token
             sp = spotipy.Spotify(auth=access_token)
 
-            tracks = self.get_playlist_tracks(playlist_id)
+            # Fetch playlist tracks and their audio features
+            tracks = self.get_playlist_tracks(sp, playlist_id)
             track_ids = [track['track']['id'] for track in tracks]
-            audio_features = self.extract_audio_features(track_ids)
+            audio_features = self.extract_audio_features(sp, track_ids)
+
+            # Create a DataFrame for the audio features
             df = pd.DataFrame(audio_features)
             df = df[['acousticness', 'danceability', 'energy', 'instrumentalness', 'liveness', 'loudness', 'speechiness', 'tempo', 'valence']]
 
+            # Apply TF-IDF transformation
             X = df.values
             transformer = TfidfTransformer()
             X_tfidf = transformer.fit_transform(X)
 
-            # Convert to dense array
+            # Convert the TF-IDF matrix to a dense array
             X_tfidf_dense = X_tfidf.toarray()
 
-            playlist_vector = Vibe_Check_Parameters.objects.update_or_create(user = user , playlist_vector =self.vector_to_binary(X_tfidf_dense, playlist_vector))
+            # Convert the dense array to binary
+            binary_vector = self.vector_to_binary(X_tfidf_dense)
+
+            # Update or create the user's playlist vector
+            Vibe_Check_Parameters.objects.update_or_create(
+                user=user, 
+                defaults={'playlist_vector': binary_vector}  # Use `defaults` to update `playlist_vector`
+            )
+
+            return Response({"message": "Playlist vector updated successfully"}, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
-    def get_playlist_tracks(sp, playlist_id):
-        
+
+    # Define the helper functions with `self`
+    def get_playlist_tracks(self, sp, playlist_id):
         tracks = []
         response = sp.playlist_tracks(playlist_id)
         while response:
@@ -363,13 +376,9 @@ class SetPlaylistVector(APIView):
             else:
                 response = None
         return tracks
-    
-    def extract_audio_features(sp, track_ids):
-        return sp.audio_features(tracks=track_ids)
-    
-    def vector_to_binary(vector):
-        return pickle.dumps(vector)
 
-# Function to convert binary back to NumPy array
-    def binary_to_vector(binary_data):
-        return pickle.loads(binary_data)
+    def extract_audio_features(self, sp, track_ids):
+        return sp.audio_features(tracks=track_ids)
+
+    def vector_to_binary(self, vector):
+        return pickle.dumps(vector) 
