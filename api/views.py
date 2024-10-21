@@ -101,6 +101,7 @@ class LoginView(APIView):
 
         response.data = {
             "cafe_info": CafeInfoSerializer(cafe_info).data,
+            "id" : payload['id'],
             "token_info": token_info
         }
 
@@ -195,7 +196,7 @@ class SetTokenView(APIView):
             # Check if the Spotify parameters already exist for the user
             spotify_params, created = Spotify_Api_Parameters.objects.update_or_create(
                 user=user,
-                id = payload['id'],
+                
                 defaults={
                     "access_token": access_token,
                     "refresh_token": refresh_token,
