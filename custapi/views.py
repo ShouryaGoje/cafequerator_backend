@@ -10,31 +10,33 @@ from datetime import datetime, timedelta, timezone
 
 class LoginView(APIView):
     def get(self, request):
-        serializer = LoginSerializer(data = request.data)
+        try:
+            serializer = LoginSerializer(data = request.data)
+            if serializer.is_valid():
+                cafeId = int(serializer.validated_data['cafeId'])
+                user = User.objects.filter(id=cafeId).first()
+                if user is None:
+                    return Response({"error":"User Not Found"},status=status.HTTP_400_BAD_REQUEST)
+                payload = {
+                    'id': user.id,
+                    'auth': 'Cust',
+                    'exp': datetime.now(timezone.utc) + timedelta(hours=2),
+                    'iat': datetime.now(timezone.utc)
+                }
+                token = jwt.encode(payload, 'secret', algorithm='HS256')
 
-        if serializer.is_valid():
-            cafeId = int(serializer.validated_data['cafeId'])
-            user = User.objects.filter(id=cafeId).first()
-            if user is None:
-                return Response({"error":"User Not Found"},status=status.HTTP_400_BAD_REQUEST)
-            payload = {
-                'id': user.id,
-                'auth': 'Cust',
-                'exp': datetime.now(timezone.utc) + timedelta(hours=2),
-                'iat': datetime.now(timezone.utc)
-            }
-            token = jwt.encode(payload, 'secret', algorithm='HS256')
 
+                response = Response()
 
-            response = Response()
+                response.data = {
+                    'message': "token set",
+                    'cjwt': f"{token}"}
 
-            response.data = {
-                'message': "token set",
-                'cjwt': f"{token}"}
-
-            response.status_code = 200
-            return response
-        return Response({"message":"nooooooo"}, status=status.HTTP_400_BAD_REQUEST) 
+                response.status_code = 200
+                return response
+            return Response({"message":"nooooooo"}, status=status.HTTP_400_BAD_REQUEST) 
+        except Exception:
+            return Response ({"message":f"{Exception}"}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class GetAccessToken(APIView):
