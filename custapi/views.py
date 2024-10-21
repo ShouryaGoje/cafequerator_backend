@@ -9,7 +9,7 @@ from datetime import datetime, timedelta, timezone
 
 
 class LoginView(APIView):
-    def get(self, request):
+    def post(self, request):
         try:
             serializer = LoginSerializer(data = request.data)
             if serializer.is_valid():
