@@ -6,6 +6,20 @@ from .serializers import *
 import jwt, datetime
 from managequeue.CafeQueue import CafeQueue as cq
 import pickle
+import numpy as np
+from sklearn.metrics.pairwise import cosine_similarity
+from spotipy import Spotify
+from pathlib import Path
+import os
+import environ
+
+
+
+
+# Build paths inside the project like this: BASE_DIR / 'subdir'.
+BASE_DIR = Path(__file__).resolve().parent.parent
+env = environ.Env()
+environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
 # Create your views here.
  
@@ -56,12 +70,11 @@ class Add_Track(APIView):
             data = serializer.validated_data  # Now this will work
 
             if payload['auth'] == "Cust":
-                if False : #vibe check here
+                if self.Vibe_Check(user, data['track_id']) : #vibe check here
                     return Response({"message":"Vibe not match"}, status=status.HTTP_403_FORBIDDEN)
                 else :
                     pass
-
-                
+     
             cafe_queue.add(data['table_no'], data['track_name'], data['track_id'], datetime.datetime.now())
 
             # Serialize the updated queue and save it back to the database
@@ -72,7 +85,48 @@ class Add_Track(APIView):
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)  # Return detailed serializer errors
     
-    
+    def Vibe_Check(user, track_id):
+        
+        # Step 1: Retrieve the user's playlist vector from the database
+        try:
+            user_parameters = Vibe_Check_Parameters.objects.get(user=user)
+            playlist_vector = pickle.loads(user_parameters.playlist_vector)  # Convert binary back to NumPy array
+        except Vibe_Check_Parameters.DoesNotExist:
+            return False  # No playlist vector found for the user
+
+        # Step 2: Initialize Spotify client to get the track's audio features
+        token_info = Spotify_Api_Parameters.objects.filter(user=user).first()
+        access_token = token_info.access_token
+
+        if not access_token:
+            return False  # No access token available
+
+        sp = Spotify(auth=access_token)
+
+        # Step 3: Retrieve the track's audio features
+        audio_features = sp.audio_features(track_id)
+        
+        if not audio_features or audio_features[0] is None:
+            return False  # Track not found or no audio features available
+
+        track_features = audio_features[0]
+        
+        # Step 4: Create a vector from the track's audio features
+        track_vector = np.array([[track_features['acousticness'], track_features['danceability'], track_features['energy'], 
+                                track_features['instrumentalness'], track_features['liveness'], 
+                                track_features['loudness'], track_features['speechiness'], 
+                                track_features['tempo'], track_features['valence']]])
+
+        # Step 5: Compute cosine similarity between the track vector and the playlist vector
+        similarity = cosine_similarity(track_vector, playlist_vector)
+
+        # Step 6: Define a threshold for similarity and return True/False
+        threshold = int(env('Vibe_Threshold', default='0.75'))  # Adjust the threshold as per your requirement
+        if similarity[0][0] >= threshold:
+            return True
+        else:
+            return False
+
 
 class Get_Queue(APIView):
 
