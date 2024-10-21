@@ -344,7 +344,7 @@ class SetPlaylistVector(APIView):
             # Create a DataFrame for the audio features
             df = pd.DataFrame(audio_features)
             df = df[['acousticness', 'danceability', 'energy', 'instrumentalness', 'liveness', 'loudness', 'speechiness', 'tempo', 'valence']]
-
+            print(df.head())
             # Apply TF-IDF transformation
             X = df.values
             transformer = TfidfTransformer()
