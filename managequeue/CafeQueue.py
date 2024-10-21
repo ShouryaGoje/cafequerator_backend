@@ -4,11 +4,7 @@ class CafeQueue():
     def __init__(self):
         self.myQueue = {}
     
-<<<<<<< HEAD
-    def add(self, table_no : int, track_name : str ,time : str, track_id = 0):
-=======
     def add(self, table_no : int, track_name : str , time : str, track_id = 0):
->>>>>>> 7ed18c66edc84e949f6a68bee88ad57f552cf1bb
         try:
             self.myQueue[table_no] += [(track_name, track_id, time)]
         except KeyError:
@@ -75,8 +71,4 @@ if __name__ == '__main__':
     time.sleep(2)
     c.add(3, '12', datetime.now())
 
-<<<<<<< HEAD
-    print('Testing :',c.getqueue(), c.myQueue)
-=======
     print('Testing :',c.getqueue(),  c.myQueue)
->>>>>>> 7ed18c66edc84e949f6a68bee88ad57f552cf1bb
