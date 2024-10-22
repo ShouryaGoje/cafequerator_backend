@@ -113,10 +113,10 @@ class Add_Track(APIView):
                                 track_features['tempo'], track_features['valence']]])
 
         # Step 5: Compute cosine similarity between the track vector and the playlist vector
-        similarity = cosine_similarity(track_vector, playlist_vector)
+        similarity = cosine_similarity(track_vector, playlist_vector.reshape(1,-1))
 
         # Step 6: Define a threshold for similarity and return True/False
-        threshold = float(env('Vibe_Threshold', default='0.0'))  # Adjust the threshold as per your requirement
+        threshold = float(env('Vibe_Threshold', default='0.5'))  # Adjust the threshold as per your requirement
         if similarity[0][0] >= threshold:
             return True
         else:
@@ -139,7 +139,7 @@ class Get_Queue(APIView):
             return Response({"error": f"Token expired: {e}"}, status=status.HTTP_400_BAD_REQUEST)
         except jwt.InvalidTokenError as e:
             return Response({"error": f"Invalid token: {e}"}, status=status.HTTP_400_BAD_REQUEST)
-        if payload['auth']!= 'Admin':
+        if payload['auth']!= 'Admin' and payload['auth'] != 'Cust':
             return Response({"error": "API Access not authorized"}, status=status.HTTP_401_UNAUTHORIZED)
 
         # Fetch the user from the decoded payload

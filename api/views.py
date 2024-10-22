@@ -15,9 +15,7 @@ from PIL import Image
 import tempfile
 import os
 import spotipy
-from spotipy.oauth2 import SpotifyOAuth
 import pandas as pd
-from sklearn.feature_extraction.text import TfidfTransformer
 import numpy as np
 
 
@@ -347,20 +345,13 @@ class SetPlaylistVector(APIView):
             df = df[['acousticness', 'danceability', 'energy', 'instrumentalness', 'liveness', 'loudness', 'speechiness', 'tempo', 'valence']]
             print(df.head())
             # Apply TF-IDF transformation
-            X = df.values
-            transformer = TfidfTransformer()
-            X_tfidf = transformer.fit_transform(X)
-
-            # Convert the TF-IDF matrix to a dense array
-            X_tfidf_dense = X_tfidf.toarray()
-
-            # Convert the dense array to binary
-            binary_vector = self.vector_to_binary(X_tfidf_dense)
+            # Calculate the average (centroid) of all track features
+            playlist_vector = df.mean().to_numpy()
 
             # Update or create the user's playlist vector
             Vibe_Check_Parameters.objects.update_or_create(
                 user=user, 
-                defaults={'playlist_vector': binary_vector}  # Use `defaults` to update `playlist_vector`
+                defaults={'playlist_vector': pickle.dumps(playlist_vector)}  # Serialize the vector
             )
 
             return Response({"message": "Playlist vector updated successfully"}, status=status.HTTP_200_OK)
@@ -381,6 +372,3 @@ class SetPlaylistVector(APIView):
 
     def extract_audio_features(self, sp, track_ids):
         return sp.audio_features(tracks=track_ids)
-
-    def vector_to_binary(self, vector):
-        return pickle.dumps(vector) 
