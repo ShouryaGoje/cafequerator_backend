@@ -25,9 +25,12 @@ class CafeQueue():
     
     def remove(self, table_no:int):
         self.myQueue.pop(table_no)
-
+        
     def poper(self):
-        self.myQueue[int(self.get_top()[0])] = self.myQueue[int(self.get_top()[0])].pop(0)
+        top_table_no = int(self.get_top()[0])
+        if self.myQueue[top_table_no]:
+            self.myQueue[top_table_no].pop(0)
+
     
     def get_top(self):
         return self.getqueue()[0]
