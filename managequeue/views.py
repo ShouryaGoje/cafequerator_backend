@@ -43,8 +43,6 @@ class Add_Track(APIView):
                 return Response({"error": f"Token expired: {e}"}, status=status.HTTP_400_BAD_REQUEST)
             except jwt.InvalidTokenError as e:
                 return Response({"error": f"Invalid token: {e}"}, status=status.HTTP_400_BAD_REQUEST)
-            if payload['auth']!= 'Admin' and payload['auth'] != "Cust":
-                return Response({"error": "API Access not authorized"}, status=status.HTTP_401_UNAUTHORIZED)
 
             # Fetch the user from the decoded payload
             user = User.objects.filter(id=payload['id']).first()
