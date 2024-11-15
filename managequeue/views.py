@@ -68,7 +68,7 @@ class Add_Track(APIView):
                 else :
                     pass
      
-            cafe_queue.add(payload['tableNum'], data['track_name'], data['track_id'], datetime.datetime.now())
+            cafe_queue.add(table_no=payload['tableNum'], track_name=data['track_name'],track_id= data['track_id'], track_img_url=data['track_img_url'],track_artist_name=data['track_artist_name'], time=datetime.datetime.now())
 
             # Serialize the updated queue and save it back to the database
             track_queue.Queue = pickle.dumps(cafe_queue)
