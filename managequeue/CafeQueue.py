@@ -4,46 +4,68 @@ class CafeQueue():
     def __init__(self):
         self.myQueue = {}
     
-    def add(self, table_no : int, track_name : str , time : str, track_id = 0):
+    def add(self, table_no: int, track_name: str, time: str, track_img_url: str, track_artist_name: str, track_id=0):
+        """
+        Adds a track to the queue for a specific table.
+        """
         try:
-            self.myQueue[table_no] += [(track_name, track_id, time)]
+            self.myQueue[table_no] += [(track_name, track_id, time, track_img_url, track_artist_name)]
         except KeyError:
-            self.myQueue[table_no] = [(track_name, track_id, time)]
+            self.myQueue[table_no] = [(track_name, track_id, time, track_img_url, track_artist_name)]
 
     def getqueue(self):
+        """
+        Retrieves a flattened list of the queue sorted by timestamp.
+        """
         dit = copy.deepcopy(self.myQueue)
         lst = []
         flag = False
-        while dit:  
-            lst += sorted([(table_no, enl.pop(0)) for table_no, enl in dit.items() if enl], key=lambda x: x[1][2])
+        while dit:
+            lst += sorted(
+                [(table_no, enl.pop(0)) for table_no, enl in dit.items() if enl],
+                key=lambda x: x[1][2]  # Sort by time
+            )
             dit = {table_no: enl for table_no, enl in dit.items() if enl}
             flag = True
         if flag:
-            lst = [{"id":i[0], "track_name": i[1][0],"timestamp": i[1][1]}for i in lst]
+            lst = [
+                {
+                    "id": i[0],
+                    "track_name": i[1][0],
+                    "timestamp": i[1][2],
+                    "track_img_url": i[1][3],
+                    "track_artist_name": i[1][4],
+                }
+                for i in lst
+            ]
         
         return lst
     
-    def remove(self, table_no:int):
-        self.myQueue.pop(table_no)
+    def remove(self, table_no: int):
+        """
+        Removes the queue for a specific table.
+        """
+        self.myQueue.pop(table_no, None)  # Use .pop() with a default to avoid errors
         
     def poper(self):
-        top_table_no = int(self.get_top()[0])
+        """
+        Removes the top track from the queue.
+        """
+        top_table_no = int(self.get_top()["id"])
         if self.myQueue[top_table_no]:
             self.myQueue[top_table_no].pop(0)
 
-    
     def get_top(self):
+        """
+        Retrieves the top track from the queue.
+        """
         return self.getqueue()[0]
-
-
+    
     def __reduce__(self):
-        # This returns a tuple of the class constructor and its arguments for reconstruction
+        """
+        Serialization helper for deep copying or pickling.
+        """
         return (self.__class__, (), copy.deepcopy(self.__dict__))
-
-
-
-
-
 
 if __name__ == '__main__':
     from datetime import datetime

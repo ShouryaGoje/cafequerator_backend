@@ -22,8 +22,10 @@ class AudioFeaturesSerializer(serializers.Serializer):
 
 
 class AddTrackSerializer(serializers.Serializer):
-    track_name = serializers.CharField(max_length=255)
     track_id = serializers.CharField(max_length=255)
+    track_name = serializers.CharField(max_length=255)
+    track_artist_name = serializers.CharField(max_length=255)
+    track_img_url = serializers.CharField(max_length=255)
 
 class RemoveTableSerializer(serializers.Serializer):
     table_no = serializers.IntegerField()
