@@ -387,6 +387,6 @@ class SetPlaylistVector(APIView):
 
     def extract_audio_features(self, sp, track_ids):
         audio_features = sp.audio_features(tracks=track_ids)
-        return [features for features in audio_features if features is not None]
+        return audio_features
 
     
