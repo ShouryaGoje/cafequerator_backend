@@ -78,14 +78,29 @@ class Add_Track(APIView):
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)  # Return detailed serializer errors
     
+    def get_playlist_vector(user):
+            try:
+                user_parameters = Vibe_Check_Parameters.objects.get(user=user)
+                return pickle.loads(user_parameters.playlist_vector)
+            except Vibe_Check_Parameters.DoesNotExist:
+                return None
+    def compute_similarity(track_vector, playlist_vector, threshold=0.5):
+        similarity = cosine_similarity(track_vector, playlist_vector.reshape(1, -1))
+        return similarity[0][0] >= threshold
+    
     def Vibe_Check(self, user, track_id):
         
         # Step 1: Retrieve the user's playlist vector from the database
-        try:
-            user_parameters = Vibe_Check_Parameters.objects.get(user=user)
-            playlist_vector = pickle.loads(user_parameters.playlist_vector)  # Convert binary back to NumPy array
-        except Vibe_Check_Parameters.DoesNotExist:
-            return False  # No playlist vector found for the user
+        # try:
+        #     user_parameters = Vibe_Check_Parameters.objects.get(user=user)
+        #     playlist_vector = pickle.loads(user_parameters.playlist_vector)  # Convert binary back to NumPy array
+        # except Vibe_Check_Parameters.DoesNotExist:
+        #     return False  # No playlist vector found for the user
+        
+            
+        playlist_vector =self.get_playlist_vector(user)
+        if playlist_vector is None:
+            return False  # No playlist vector available
 
         # Step 2: Initialize Spotify client to get the track's audio features
         token_info = Spotify_Api_Parameters.objects.filter(user=user).first()
@@ -111,14 +126,7 @@ class Add_Track(APIView):
                                 track_features['tempo'], track_features['valence']]])
 
         # Step 5: Compute cosine similarity between the track vector and the playlist vector
-        similarity = cosine_similarity(track_vector, playlist_vector.reshape(1,-1))
-
-        # Step 6: Define a threshold for similarity and return True/False
-        threshold = float(env('Vibe_Threshold', default='0.5'))  # Adjust the threshold as per your requirement
-        if similarity[0][0] >= threshold:
-            return True
-        else:
-            return False
+        return self.compute_similarity(track_vector, playlist_vector)
 
 
 class Get_Queue(APIView):

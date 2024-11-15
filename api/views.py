@@ -17,6 +17,7 @@ import os
 import spotipy
 import pandas as pd
 import numpy as np
+from sklearn.preprocessing import MinMaxScaler
 
 
 
@@ -345,7 +346,12 @@ class SetPlaylistVector(APIView):
             df = df[['acousticness', 'danceability', 'energy', 'instrumentalness', 'liveness', 'loudness', 'speechiness', 'tempo', 'valence']]
             print(df.head())
             # Apply TF-IDF transformation
+            #Normalize Feature Values. Spotify's features like loudness and tempo are not naturally scaled.
+            def normalize_features(df):
+                scaler = MinMaxScaler()
+                return pd.DataFrame(scaler.fit_transform(df), columns=df.columns)
             # Calculate the average (centroid) of all track features
+            df = normalize_features(df)
             playlist_vector = df.mean().to_numpy()
 
             # Update or create the user's playlist vector
@@ -371,4 +377,7 @@ class SetPlaylistVector(APIView):
         return tracks
 
     def extract_audio_features(self, sp, track_ids):
-        return sp.audio_features(tracks=track_ids)
+        audio_features = sp.audio_features(tracks=track_ids)
+        return [features for features in audio_features if features is not None]
+
+    
