@@ -297,7 +297,7 @@ class SetPlaylistVector(APIView):
         serializer = PlaylistVectorSerializer(data=request.data)
         if serializer.is_valid():
             auth_header = request.headers.get('Authorization')
-            if not auth_header or not auth_header.startswith('Bearer '):
+            if not auth_header or not auth_header.startswith('Bearer    '):
                 return Response({"error": "Authorization header missing or improperly formatted"}, status=status.HTTP_401_UNAUTHORIZED)
 
             # Extract the token
@@ -337,7 +337,11 @@ class SetPlaylistVector(APIView):
             sp = spotipy.Spotify(auth=access_token)
 
             # Fetch playlist tracks and their audio features
-            tracks = self.get_playlist_tracks(sp, playlist_id)
+            try:
+                tracks = self.get_playlist_tracks(sp, playlist_id)
+            except spotipy.SpotifyException as e:
+                return Response({"error": f"Spotify API Error: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
             track_ids = [track['track']['id'] for track in tracks]
             audio_features = self.extract_audio_features(sp, track_ids)
 
@@ -348,8 +352,13 @@ class SetPlaylistVector(APIView):
             # Apply TF-IDF transformation
             #Normalize Feature Values. Spotify's features like loudness and tempo are not naturally scaled.
             def normalize_features(df):
+                # Example: Adjust loudness to positive scale and normalize tempo
+                df['loudness'] = df['loudness'] + abs(df['loudness'].min())
+                df['tempo'] = df['tempo'] / df['tempo'].max()
+
                 scaler = MinMaxScaler()
                 return pd.DataFrame(scaler.fit_transform(df), columns=df.columns)
+
             # Calculate the average (centroid) of all track features
             df = normalize_features(df)
             playlist_vector = df.mean().to_numpy()
