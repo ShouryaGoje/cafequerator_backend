@@ -297,7 +297,7 @@ class SetPlaylistVector(APIView):
         serializer = PlaylistVectorSerializer(data=request.data)
         if serializer.is_valid():
             auth_header = request.headers.get('Authorization')
-            if not auth_header or not auth_header.startswith('Bearer    '):
+            if not auth_header or not auth_header.startswith('Bearer '):
                 return Response({"error": "Authorization header missing or improperly formatted"}, status=status.HTTP_401_UNAUTHORIZED)
 
             # Extract the token
