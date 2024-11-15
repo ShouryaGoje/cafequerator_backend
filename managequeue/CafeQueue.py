@@ -19,7 +19,7 @@ class CafeQueue():
             dit = {table_no: enl for table_no, enl in dit.items() if enl}
             flag = True
         if flag:
-            lst = [(i[0], i[1][0], i[1][1])for i in lst]
+            lst = [{"id":i[0], "track_name": i[1][0],"timestamp": i[1][1]}for i in lst]
         
         return lst
     
