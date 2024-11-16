@@ -253,12 +253,12 @@ class PdfAPIView(APIView):
         pdf = canvas.Canvas(buffer, pagesize=A4)
         width, height = A4
 
-        base_url = "http://your_url.com"  # Hardcoded URL
+        base_url = "https://cafe-querator.vercel.app"  # Hardcoded URL
 
         # Generate QR codes for each table
         for table_num in range(1, no_of_tables + 1):
             # Create the URL
-            qr_url = f"{base_url}/{cafe_name}/table/{table_num}/?id={user.id}"
+            qr_url = f"{base_url}/{cafe_name}/table/{table_num}?id={user.id}"
 
             # Generate QR code using Pillow (PIL)
             qr = qrcode.make(qr_url)  # This returns a PIL Image object
