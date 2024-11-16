@@ -32,6 +32,7 @@ class CafeQueue():
                 {
                     "id": i[0],
                     "track_name": i[1][0],
+                    "track_id": i[1][1],
                     "timestamp": i[1][2],
                     "track_img_url": i[1][3],
                     "track_artist_name": i[1][4],
