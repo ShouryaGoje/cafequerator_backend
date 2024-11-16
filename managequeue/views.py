@@ -63,7 +63,7 @@ class Add_Track(APIView):
 
             if payload['auth'] == "Cust":
                 track_id = data['track_id']
-                if False : #vibe check here self.Vibe_Check(user, track_id)
+                if self.Vibe_Check(user, track_id):
                     return Response({"message":"Vibe not match"}, status=status.HTTP_204_NO_CONTENT)
                 else :
                     pass
