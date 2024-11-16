@@ -187,7 +187,7 @@ class Next_Track(APIView):
         except Exception as e:
             return Response({"error": f"Failed to load queue: {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
-        return Response({"Queue": cafe_queue.get_top()}, status=status.HTTP_200_OK)
+        return Response({"Next_track": cafe_queue.get_top()}, status=status.HTTP_200_OK)
     
     def post(self, request):
         auth_header = request.headers.get('Authorization')
