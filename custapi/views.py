@@ -27,11 +27,11 @@ class LoginView(APIView):
                 }
                 token = jwt.encode(payload, 'secret', algorithm='HS256')
 
-
+                Table_Status_Data.objects.filter(user=user, table_number =tableNum).update(table_status = True)
                 response = Response()
 
                 response.data = {
-                    'message': "token set",
+                    'message': "token set and table status updated",
                     'cjwt': f"{token}"}
 
                 response.status_code = 200

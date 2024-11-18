@@ -50,7 +50,7 @@ class CombinedUserCafeSerializer(serializers.ModelSerializer):
         if cafe_info_data:
             Cafe_Info.objects.create(user=user_instance, **cafe_info_data)
         for i in range(1, int(cafe_info_data['No_of_Tables'])+1):
-            Table_Status_Data.create(user=user_instance, table_number=i)
+            Table_Status_Data.objects.create(user=user_instance, table_number=i)
         
         return user_instance
     

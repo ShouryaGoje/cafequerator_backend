@@ -192,9 +192,6 @@ class TableStatusView(APIView):
         
         return Response({"table_status": table_status}, status=status.HTTP_200_OK)
 
-
-        
-
         
 class SetTokenView(APIView):
     def post(self, request, format=None):
