@@ -158,10 +158,11 @@ class Get_Queue(APIView):
             return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
         # Get or create the user's track queue
-        track_queue= Track_Queue.objects.get(user=user)
-
+        
         # Deserialize the user's existing queue
         try:
+            track_queue= Track_Queue.objects.get(user=user)
+
             cafe_queue = pickle.loads(track_queue.Queue) if track_queue.Queue else cq()
         except Exception as e:
             return Response({"error": f"Queue empty: {e}"}, status=status.HTTP_400_BAD_REQUEST)#changed status from 500 to 400
@@ -194,10 +195,11 @@ class Next_Track(APIView):
             return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
         # Get or create the user's track queue
-        track_queue= Track_Queue.objects.get(user=user)
+        
 
         # Deserialize the user's existing queue
         try:
+            track_queue= Track_Queue.objects.get(user=user)
             cafe_queue = pickle.loads(track_queue.Queue) if track_queue.Queue else cq()
         except Exception as e:
             return Response({"error": f"Failed to load queue: {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -227,10 +229,11 @@ class Next_Track(APIView):
             return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
         # Get or create the user's track queue
-        track_queue= Track_Queue.objects.get(user=user)
+        
 
         # Deserialize the user's existing queue
         try:
+            track_queue= Track_Queue.objects.get(user=user)
             cafe_queue = pickle.loads(track_queue.Queue) if track_queue.Queue else cq()
         except Exception as e:
             return Response({"error": f"Failed to load queue: {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -269,10 +272,11 @@ class Remove_Table(APIView):
                 return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
             # Get or create the user's track queue
-            track_queue= Track_Queue.objects.get(user=user)
-
+            
             # Deserialize the user's existing queue
             try:
+                track_queue= Track_Queue.objects.get(user=user)
+
                 cafe_queue = pickle.loads(track_queue.Queue) if track_queue.Queue else cq()
             except Exception as e:
                 return Response({"error": f"Failed to load queue: {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -284,7 +288,7 @@ class Remove_Table(APIView):
             # Serialize the updated queue and save it back to the database
             track_queue.Queue = pickle.dumps(cafe_queue)
             track_queue.save()
-
+            Table_Status_Data.objects.filter(user=user, table_number =payload['tableNum']).update(table_status = False)
             return Response({"message": f"success"}, status=status.HTTP_200_OK)
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST) 
