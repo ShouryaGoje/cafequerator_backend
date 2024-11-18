@@ -27,7 +27,7 @@ class Cafe_Info(models.Model):
     No_of_Tables = models.IntegerField(default=1)
 
 class Table_Status_Data(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     table_number = models.IntegerField(max_length=3)
     table_status = models.BooleanField(default=False)
     
