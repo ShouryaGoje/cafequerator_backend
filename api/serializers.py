@@ -49,6 +49,8 @@ class CombinedUserCafeSerializer(serializers.ModelSerializer):
         # Create Cafe_Info instance
         if cafe_info_data:
             Cafe_Info.objects.create(user=user_instance, **cafe_info_data)
+        for i in range(1, int(cafe_info_data['No_of_Tables'])+1):
+            Table_Status_Data.create(user=user_instance, table_number=i)
         
         return user_instance
     
@@ -62,6 +64,11 @@ class PlaylistVectorSerializer(serializers.Serializer):
 
     playlist_name = serializers.CharField()
     playlist_id = serializers.CharField()
+
+class TableStatusSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Table_Status_Data
+        fields = ["table_number","table_status"]
 
 
             

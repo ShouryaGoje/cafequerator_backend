@@ -12,6 +12,9 @@ from spotipy import Spotify
 from pathlib import Path
 import os
 import environ
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
+
 
 
 
@@ -73,8 +76,19 @@ class Add_Track(APIView):
             # Serialize the updated queue and save it back to the database
             track_queue.Queue = pickle.dumps(cafe_queue)
             track_queue.save()
-
+            room_name = f"queue_{payload['id']}"
+            print(room_name)
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)(
+            room_name,
+            {
+                "type": "websocket.message",  # Must match the method name in the consumer
+                "text": "queue updated"
+            }
+            )
             return Response({"message": f"success"}, status=status.HTTP_200_OK)
+        
+        
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)  # Return detailed serializer errors
     
@@ -152,6 +166,7 @@ class Get_Queue(APIView):
         except Exception as e:
             return Response({"error": f"Failed to load queue: {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
+
         return Response({"Queue": cafe_queue.getqueue()}, status=status.HTTP_200_OK)
 
 class Next_Track(APIView):

@@ -35,6 +35,9 @@ ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=[])
 # Application definition
 
 INSTALLED_APPS = [
+    'channels',
+    'daphne',
+    'channels_postgres',
     'corsheaders',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -50,6 +53,23 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     
 ]
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [
+                {
+                    "address": "rediss://default:AVNS_uVsXcAptjpfFsqkLIOF@redisdb-cafequerator.c.aivencloud.com:18916",
+                    "password": "AVNS_uVsXcAptjpfFsqkLIOF",
+                    "host":"redisdb-cafequerator.c.aivencloud.com",
+                }
+            ],
+        },
+    },
+}
+ASGI_APPLICATION = 'Backend.asgi.application'
+
 
 MIDDLEWARE =  [
     'django.middleware.security.SecurityMiddleware',

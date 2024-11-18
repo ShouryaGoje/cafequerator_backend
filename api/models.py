@@ -25,6 +25,11 @@ class Cafe_Info(models.Model):
     Owner_Name = models.CharField(max_length=255,default='')
     Owner_Contact = models.CharField(max_length=15,default='')
     No_of_Tables = models.IntegerField(default=1)
+
+class Table_Status_Data(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    table_number = models.IntegerField(max_length=3)
+    table_status = models.BooleanField(default=False)
     
 class Spotify_Api_Parameters(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -39,3 +44,4 @@ class Vibe_Check_Parameters(models.Model):
 class Track_Queue(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     Queue = models.BinaryField(default=empty_queue)
+

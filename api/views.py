@@ -98,11 +98,13 @@ class LoginView(APIView):
         if token_info["access_token"] == '':
             token_info = "Not set"
         
-
+        table_status = Table_Status_Data.objects.filter(user=user)
+        table_status = TableStatusSerializer(table_status, many = True).data
         response.data = {
             "cafe_info": CafeInfoSerializer(cafe_info).data,
             "id" : payload['id'],
-            "token_info": token_info
+            "token_info": token_info,
+            "table_status": table_status
         }
 
         response.status_code = 200
@@ -157,7 +159,43 @@ class TruncateView(APIView):
 
         return Response({"message":"Data Gone"},status=status.HTTP_410_GONE)
     
+class TableStatusView(APIView):
+    def get(self, request, format = None):
+        auth_header = request.headers.get('Authorization')
+        if not auth_header or not auth_header.startswith('Bearer '):
+            return Response({"error": "Authorization header missing or improperly formatted"}, status=status.HTTP_401_UNAUTHORIZED)
 
+        # Extract the token
+        token = auth_header.split(' ')[1]
+
+        # Check if the token exists
+        if not token:
+            return Response({"error": "JWT token missing from cookies"}, status=status.HTTP_401_UNAUTHORIZED)
+
+        try:
+            # Decode the JWT token to get the payload
+            payload = jwt.decode(token, 'secret', algorithms=['HS256'])
+        except jwt.ExpiredSignatureError as e:
+            return Response({"error": f"Token expired: {e}"}, status=status.HTTP_400_BAD_REQUEST)
+        except jwt.InvalidTokenError as e:
+            return Response({"error": f"Invalid token: {e}"}, status=status.HTTP_400_BAD_REQUEST)
+        
+        if payload['auth']!= 'Admin':
+            return Response({"error": "API Access not authorized"}, status=status.HTTP_401_UNAUTHORIZED)
+
+        # Find the user from the payload
+        user = User.objects.filter(id=payload['id']).first()
+        if user is None:
+            return Response({"error":"User Not Found"},status=status.HTTP_400_BAD_REQUEST)
+        table_status = Table_Status_Data.objects.filter(user=user)
+        table_status = TableStatusSerializer(table_status, many = True).data
+        
+        return Response({"table_status": table_status}, status=status.HTTP_200_OK)
+
+
+        
+
+        
 class SetTokenView(APIView):
     def post(self, request, format=None):
         auth_header = request.headers.get('Authorization')
