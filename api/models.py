@@ -28,7 +28,7 @@ class Cafe_Info(models.Model):
 
 class Table_Status_Data(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    table_number = models.IntegerField(max_length=3)
+    table_number = models.IntegerField()
     table_status = models.BooleanField(default=False)
     
 class Spotify_Api_Parameters(models.Model):
