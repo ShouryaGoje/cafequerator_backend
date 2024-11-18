@@ -6,7 +6,8 @@ from api.serializers import SpotifyParameterSerializer
 from api.models import *
 import jwt, datetime
 from datetime import datetime, timedelta, timezone
-
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
 
 class LoginView(APIView):
     def post(self, request):
@@ -29,7 +30,16 @@ class LoginView(APIView):
 
                 Table_Status_Data.objects.filter(user=user, table_number =tableNum).update(table_status = True)
                 response = Response()
-
+                room_name = f"queue_{payload['id']}"
+                print(room_name)
+                channel_layer = get_channel_layer()
+                async_to_sync(channel_layer.group_send)(
+                room_name,
+                {
+                    "type": "websocket.message",  # Must match the method name in the consumer
+                    "text": "Table Status updated"
+                }
+                )
                 response.data = {
                     'message': "token set and table status updated",
                     'cjwt': f"{token}"}

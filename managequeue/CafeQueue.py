@@ -60,7 +60,10 @@ class CafeQueue():
         """
         Retrieves the top track from the queue.
         """
-        return self.getqueue()[0]
+        q = self.getqueue()
+        if len(q) == 0:
+            return None
+        return q[0]
     
     def __reduce__(self):
         """

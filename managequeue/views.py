@@ -203,8 +203,28 @@ class Next_Track(APIView):
             cafe_queue = pickle.loads(track_queue.Queue) if track_queue.Queue else cq()
         except Exception as e:
             return Response({"error": f"Failed to load queue: {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
-        return Response({"Next_track": cafe_queue.get_top()}, status=status.HTTP_200_OK)
+        room_name = f"queue_{payload['id']}"
+        print(room_name)
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+        room_name,
+        {
+            "type": "websocket.message",  # Must match the method name in the consumer
+            "text": "queue updated"
+        }
+        )
+        async_to_sync(channel_layer.group_send)(
+        room_name,
+        {
+            "type": "websocket.message",  # Must match the method name in the consumer
+            "text": "current track updated"
+        }
+        )
+        next_track=cafe_queue.get_top()
+        if next_track is None:
+            return Response({"error": f"Queue is empty"}, status=status.HTTP_410_GONE)
+        Track_Queue.objects.filter(user=user).update(current_track = next_track)
+        return Response({"Next_track": next_track}, status=status.HTTP_200_OK)
     
     def post(self, request):
         auth_header = request.headers.get('Authorization')
@@ -242,6 +262,42 @@ class Next_Track(APIView):
         track_queue.Queue = pickle.dumps(cafe_queue)
         track_queue.save()
         return Response({"message": f"success"}, status=status.HTTP_200_OK)
+
+
+class Current_Track(APIView):
+
+    def get(self, request):
+        auth_header = request.headers.get('Authorization')
+        if not auth_header or not auth_header.startswith('Bearer '):
+            return Response({"error": "Authorization header missing or improperly formatted"}, status=status.HTTP_401_UNAUTHORIZED)
+
+        token = auth_header.split(' ')[1]
+
+        try:
+            # Decode the JWT token to get the user information
+            payload = jwt.decode(token, 'secret', algorithms=['HS256'])
+        except jwt.ExpiredSignatureError as e:
+            return Response({"error": f"Token expired: {e}"}, status=status.HTTP_400_BAD_REQUEST)
+        except jwt.InvalidTokenError as e:
+            return Response({"error": f"Invalid token: {e}"}, status=status.HTTP_400_BAD_REQUEST)
+        if payload['auth']!= 'Admin':
+            return Response({"error": "API Access not authorized"}, status=status.HTTP_401_UNAUTHORIZED)
+
+        # Fetch the user from the decoded payload
+        user = User.objects.filter(id=payload['id']).first()
+        if not user:
+            return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        # Get or create the user's track queue
+        
+
+        # Deserialize the user's existing queue
+        try:
+            track_queue= Track_Queue.objects.get(user=user)
+        except Exception as e:
+            return Response({"error": f"Failed to load queue: {e}"}, status=status.HTTP_404_NOT_FOUND)
+    
+        return Response({"current_track": track_queue.current_track}, status=status.HTTP_200_OK)
 
 
 class Remove_Table(APIView):

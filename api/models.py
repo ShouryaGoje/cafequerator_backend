@@ -44,4 +44,5 @@ class Vibe_Check_Parameters(models.Model):
 class Track_Queue(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     Queue = models.BinaryField(default=empty_queue)
+    current_track = models.JSONField(default={})
 
