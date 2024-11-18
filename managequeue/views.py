@@ -164,7 +164,7 @@ class Get_Queue(APIView):
         try:
             cafe_queue = pickle.loads(track_queue.Queue) if track_queue.Queue else cq()
         except Exception as e:
-            return Response({"error": f"Failed to load queue: {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            return Response({"error": f"Queue empty: {e}"}, status=status.HTTP_400_BAD_REQUEST)#changed status from 500 to 400
         
 
         return Response({"Queue": cafe_queue.getqueue()}, status=status.HTTP_200_OK)

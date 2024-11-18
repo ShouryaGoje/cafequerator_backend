@@ -291,12 +291,12 @@ class PdfAPIView(APIView):
         pdf = canvas.Canvas(buffer, pagesize=A4)
         width, height = A4
 
-        base_url = "http://your_url.com"  # Hardcoded URL
+        base_url = "https://cafe-querator.vercel.app"  # Hardcoded URL
 
         # Generate QR codes for each table
         for table_num in range(1, no_of_tables + 1):
             # Create the URL
-            qr_url = f"{base_url}/{cafe_name}/table/{table_num}/?id={user.id}"
+            qr_url = f"{base_url}/{cafe_name}/table/{table_num}?id={user.id}"
 
             # Generate QR code using Pillow (PIL)
             qr = qrcode.make(qr_url)  # This returns a PIL Image object
@@ -305,9 +305,19 @@ class PdfAPIView(APIView):
             with tempfile.NamedTemporaryFile(delete=False, suffix=".png") as tmp_file:
                 qr.save(tmp_file, format='PNG')  # Save it as a PNG image
                 tmp_file_path = tmp_file.name  # Get the temporary file path
+            
+            # Place the QR code on the PDF page
+            qr_x_position = (width - 300) / 2  # Horizontal center
+            qr_y_position = (height - 300) / 2 + 100  # Positioned slightly higher to leave space for text below
 
             # Place the QR code on the PDF page
-            pdf.drawImage(tmp_file_path, (width - 300) / 2, (height - 300) / 2, 300, 300)
+            pdf.drawImage(tmp_file_path, qr_x_position, qr_y_position, 300, 300)
+
+            # Add the "Table No. X" text below the QR code
+            text_x_position = (width - 300) / 2 + 100  # Center text below the QR code
+            text_y_position = qr_y_position - 40  # Position text 40 units below the QR code
+            pdf.setFont("Helvetica", 14)  # Set font and size for the table number text
+            pdf.drawString(text_x_position, text_y_position, f"Table No. {table_num}")
 
             # Add a new page for the next table
             pdf.showPage()
