@@ -60,9 +60,9 @@ CHANNEL_LAYERS = {
         "CONFIG": {
             "hosts": [
                 {
-                    "address": "rediss://default:AVNS_uVsXcAptjpfFsqkLIOF@redisdb-cafequerator.c.aivencloud.com:18916",
-                    "password": "AVNS_uVsXcAptjpfFsqkLIOF",
-                    "host":"redisdb-cafequerator.c.aivencloud.com",
+                    "address": env('RD_ADDRESS'), 
+                    "password": env('RD_PASSWORD'),
+                    "host":env('RD_HOST'),
                 }
             ],
         },
