@@ -1,7 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from datetime import datetime
-import pytz
 import pickle
 from managequeue.CafeQueue import CafeQueue as cq
 from jsonfield import JSONField

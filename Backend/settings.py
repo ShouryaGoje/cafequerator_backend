@@ -37,7 +37,6 @@ ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=[])
 INSTALLED_APPS = [
     'channels',
     'daphne',
-    'channels_postgres',
     'corsheaders',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -48,10 +47,7 @@ INSTALLED_APPS = [
     'api',
     'managequeue',
     'custapi',
-    'rest_framework',
-    'rest_framework.authtoken',
-    'rest_framework_simplejwt',
-    
+    'rest_framework',    
 ]
 
 CHANNEL_LAYERS = {
