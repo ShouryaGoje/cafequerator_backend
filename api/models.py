@@ -4,7 +4,7 @@ from datetime import datetime
 import pytz
 import pickle
 from managequeue.CafeQueue import CafeQueue as cq
-import jsonfield
+
 
 empty_queue = pickle.dumps(cq())
 
@@ -45,5 +45,5 @@ class Vibe_Check_Parameters(models.Model):
 class Track_Queue(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     Queue = models.BinaryField(default=empty_queue)
-    current_track = jsonfield.JSONField(default={})
+    current_track = models.JSONField(default={})
 
