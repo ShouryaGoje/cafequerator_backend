@@ -19,6 +19,8 @@ class LoginView(APIView):
                 user = User.objects.filter(id=cafeId).first()
                 if user is None:
                     return Response({"error":"User Not Found"},status=status.HTTP_400_BAD_REQUEST)
+                if tableNum > int(Cafe_Info.objects.filter(user=user).first().No_of_Tables):
+                    return Response({"error":"Table does not exist"},status=status.HTTP_400_BAD_REQUEST)
                 payload = {
                     'id': user.id,
                     'auth': 'Cust',

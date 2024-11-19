@@ -70,6 +70,10 @@ class Add_Track(APIView):
                     return Response({"message":"Vibe not match"}, status=status.HTTP_204_NO_CONTENT)
                 else :
                     pass
+
+            for i in cafe_queue.getqueue():
+                if i['track_id'] == data['track_id']:
+                    return Response({"message":"Track already in queue"}, status=status.HTTP_226_IM_USED)
      
             cafe_queue.add(table_no=payload['tableNum'], track_name=data['track_name'],track_id= data['track_id'], track_img_url=data['track_img_url'],track_artist_name=data['track_artist_name'], time=datetime.datetime.now())
 
@@ -344,7 +348,7 @@ class Remove_Table(APIView):
             # Serialize the updated queue and save it back to the database
             track_queue.Queue = pickle.dumps(cafe_queue)
             track_queue.save()
-            Table_Status_Data.objects.filter(user=user, table_number =payload['tableNum']).update(table_status = False)
+            Table_Status_Data.objects.filter(user=user, table_number =data['table_no']).update(table_status = False)
             return Response({"message": f"success"}, status=status.HTTP_200_OK)
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST) 
