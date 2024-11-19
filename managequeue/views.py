@@ -66,9 +66,10 @@ class Add_Track(APIView):
             for i in cafe_queue.getqueue():
                 if i['track_id'] == data['track_id']:
                     return Response({"message":"Track already in queue"}, status=status.HTTP_226_IM_USED)
-            if Table_Status_Data.objects.filter(user = user,table_number= payload['tableNum']).first().table_status == False:
-                return Response({"error":"unauthorized"}, status=status.HTTP_401_UNAUTHORIZED)
+            
             if payload['auth'] == "Cust":
+                if Table_Status_Data.objects.filter(user = user,table_number= payload['tableNum']).first().table_status == False:
+                    return Response({"error":"unauthorized"}, status=status.HTTP_401_UNAUTHORIZED)
                 track_id = data['track_id']
                 if self.Vibe_Check(user, track_id):
                     return Response({"message":"Vibe not match"}, status=status.HTTP_204_NO_CONTENT)
