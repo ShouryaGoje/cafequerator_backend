@@ -352,6 +352,15 @@ class Remove_Table(APIView):
             track_queue.Queue = pickle.dumps(cafe_queue)
             track_queue.save()
             Table_Status_Data.objects.filter(user=user, table_number =data['table_no']).update(table_status = False)
+            room_name = f"queue_{payload['id']}"
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)(
+            room_name,
+            {
+                "type": "websocket.message",  # Must match the method name in the consumer
+                "text": "queue updated"
+            }
+            )
             return Response({"message": f"success"}, status=status.HTTP_200_OK)
         
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST) 
