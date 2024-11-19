@@ -237,6 +237,7 @@ class Next_Track(APIView):
 
         token = auth_header.split(' ')[1]
 
+
         try:
             # Decode the JWT token to get the user information
             payload = jwt.decode(token, 'secret', algorithms=['HS256'])
