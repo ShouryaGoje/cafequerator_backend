@@ -39,7 +39,7 @@ class LoginView(APIView):
                 room_name,
                 {
                     "type": "websocket.message",  # Must match the method name in the consumer
-                    "text": "Table Status updated"
+                    "text": f"Table {tableNum} Turned On"
                 }
                 )
                 response.data = {
