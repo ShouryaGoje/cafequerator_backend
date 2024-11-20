@@ -390,7 +390,7 @@ class SetPlaylistVector(APIView):
             except spotipy.SpotifyException as e:
                 return Response({"error": f"Spotify API Error: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             
-
+            print(tracks)
             tracks_info = [(track['track']['id'],track['track']['name'] )for track in tracks]
 
             #############################################################################: add vibe check here
