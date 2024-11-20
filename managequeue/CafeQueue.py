@@ -18,6 +18,11 @@ class CafeQueue():
         Retrieves a flattened list of the queue sorted by timestamp.
         """
         dit = copy.deepcopy(self.myQueue)
+        try:
+            tail = dit[-1]
+            dit.pop(-1)
+        except Exception as e:
+            pass
         lst = []
         flag = False
         while dit:
@@ -39,7 +44,18 @@ class CafeQueue():
                 }
                 for i in lst
             ]
-        
+        try:
+            for i in tail:
+                lst.append({
+                    "id": -1,
+                    "track_name": i[0],
+                    "track_id": i[1],
+                    "timestamp": i[2],
+                    "track_img_url": i[3],
+                    "track_artist_name": i[4],
+            })
+        except Exception as e:
+            pass
         return lst
     
     def remove(self, table_no: int):

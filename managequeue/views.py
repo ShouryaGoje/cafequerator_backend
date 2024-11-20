@@ -165,16 +165,14 @@ class Get_Queue(APIView):
             return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
         # Get or create the user's track queue
-        
+        print(payload['id'])
         # Deserialize the user's existing queue
         try:
             track_queue= Track_Queue.objects.get(user=user)
-
             cafe_queue = pickle.loads(track_queue.Queue) if track_queue.Queue else cq()
         except Exception as e:
             return Response({"error": f"Queue empty: {e}"}, status=status.HTTP_400_BAD_REQUEST)#changed status from 500 to 400
         
-
         return Response({"Queue": cafe_queue.getqueue()}, status=status.HTTP_200_OK)
 
 class Next_Track(APIView):

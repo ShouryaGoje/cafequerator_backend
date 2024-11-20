@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework.exceptions import AuthenticationFailed
 from .serializers import *
 from .models import *
-import jwt, datetime
+import jwt
 from datetime import datetime, timedelta, timezone
 import io
 import qrcode
@@ -18,6 +18,9 @@ import spotipy
 import pandas as pd
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
+from managequeue.CafeQueue import CafeQueue as cq
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
 
 
 
@@ -363,7 +366,7 @@ class SetPlaylistVector(APIView):
             # Check if the user has the correct authorization
             if payload['auth'] != 'Admin':
                 return Response({"error": "API Access not authorized"}, status=status.HTTP_401_UNAUTHORIZED)
-
+            print(payload['id'])
             # Find the user from the payload
             user = User.objects.filter(id=payload['id']).first()
             if not user:
@@ -386,34 +389,46 @@ class SetPlaylistVector(APIView):
                 tracks = self.get_playlist_tracks(sp, playlist_id)
             except spotipy.SpotifyException as e:
                 return Response({"error": f"Spotify API Error: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            
 
-            track_ids = [track['track']['id'] for track in tracks]
-            audio_features = self.extract_audio_features(sp, track_ids)
+            tracks_info = [(track['track']['id'],track['track']['name'] )for track in tracks]
 
-            # Create a DataFrame for the audio features
-            df = pd.DataFrame(audio_features)
-            df = df[['acousticness', 'danceability', 'energy', 'instrumentalness', 'liveness', 'loudness', 'speechiness', 'tempo', 'valence']]
-            print(df.head())
-            # Apply TF-IDF transformation
-            #Normalize Feature Values. Spotify's features like loudness and tempo are not naturally scaled.
-            def normalize_features(df):
-                # Example: Adjust loudness to positive scale and normalize tempo
-                df['loudness'] = df['loudness'] + abs(df['loudness'].min())
-                df['tempo'] = df['tempo'] / df['tempo'].max()
+            #############################################################################: add vibe check here
 
-                scaler = MinMaxScaler()
-                return pd.DataFrame(scaler.fit_transform(df), columns=df.columns)
 
-            # Calculate the average (centroid) of all track features
-            df = normalize_features(df)
-            playlist_vector = df.mean().to_numpy()
 
-            # Update or create the user's playlist vector
-            Vibe_Check_Parameters.objects.update_or_create(
-                user=user, 
-                defaults={'playlist_vector': pickle.dumps(playlist_vector)}  # Serialize the vector
+
+
+
+
+
+            #############################################################################: do not change after this
+
+            # Get or create the user's track queue
+            track_queue, created = Track_Queue.objects.get_or_create(user=user)
+
+            # Deserialize the user's existing queue
+            try:
+                cafe_queue = pickle.loads(track_queue.Queue) if track_queue.Queue else cq()
+            except Exception as e:
+                return Response({"error": f"Failed to load queue: {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            try:
+                cafe_queue.remove(-1)
+            except Exception as e:
+                pass
+            for track_info in tracks_info: 
+                cafe_queue.add(table_no=-1, track_name=track_info[1],track_id= track_info[0], track_img_url='-',track_artist_name='-', time=datetime.now())
+            track_queue.Queue = pickle.dumps(cafe_queue)
+            track_queue.save()
+            room_name = f"queue_{payload['id']}"
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)(
+            room_name,
+            {
+                "type": "websocket.message",  # Must match the method name in the consumer
+                "text": "queue updated"
+            }
             )
-
             return Response({"message": "Playlist vector updated successfully"}, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
