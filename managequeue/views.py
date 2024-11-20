@@ -227,7 +227,7 @@ class Next_Track(APIView):
         )
         next_track=cafe_queue.get_top()
         if next_track is None:
-            return Response({"error": f"Queue is empty"}, status=status.HTTP_204_NO_CONTENT)
+            return Response({"error": f"Kuch nai hai queue me"}, status=status.HTTP_204_NO_CONTENT)
         Track_Queue.objects.filter(user=user).update(current_track = next_track)
         return Response({"Next_track": next_track}, status=status.HTTP_200_OK)
     
