@@ -390,18 +390,18 @@ class SetPlaylistVector(APIView):
             except spotipy.SpotifyException as e:
                 return Response({"error": f"Spotify API Error: {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             
-            print(tracks)
-            tracks_info = [(track['track']['id'],track['track']['name'] )for track in tracks]
-
-            #############################################################################: add vibe check here
-
-
-
-
-
-
-
-
+           
+            tracks_info = [ (track['track']['id'],track['track']['name'])for track in tracks]
+            #############################################################################: add Playlist code here 
+            audio_features = self.extract_audio_features(sp,[track_ids[0] for track_ids in tracks_info])
+            df = pd.DataFrame(audio_features)
+            
+            Vibe_Check_Parameters.objects.update_or_create(
+                user=user, 
+                defaults={'playlist_vector': pickle.dumps(df)}  # Serialize the vector
+            )
+        
+            
             #############################################################################: do not change after this
 
             # Get or create the user's track queue
@@ -420,15 +420,7 @@ class SetPlaylistVector(APIView):
                 cafe_queue.add(table_no=-1, track_name=track_info[1],track_id= track_info[0], track_img_url='-',track_artist_name='-', time=datetime.now())
             track_queue.Queue = pickle.dumps(cafe_queue)
             track_queue.save()
-            room_name = f"queue_{payload['id']}"
-            channel_layer = get_channel_layer()
-            async_to_sync(channel_layer.group_send)(
-            room_name,
-            {
-                "type": "websocket.message",  # Must match the method name in the consumer
-                "text": "queue updated"
-            }
-            )
+            
             return Response({"message": "Playlist vector updated successfully"}, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

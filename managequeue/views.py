@@ -72,7 +72,7 @@ class Add_Track(APIView):
                     return Response({"error":"unauthorized"}, status=status.HTTP_401_UNAUTHORIZED)
                 track_id = data['track_id']
                 if self.Vibe_Check(user, track_id):
-                    return Response({"message":"Vibe not match"}, status=status.HTTP_204_NO_CONTENT)
+                    return Response({"message":"Vibe not match"}, status=status.HTTP_403_FORBIDDEN)
                 else :
                     pass
 
@@ -100,11 +100,24 @@ class Add_Track(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)  # Return detailed serializer errors
     
     def Vibe_Check(self, user, track_id):
-        
+        # Define the percentage thresholds for each feature
+        matching_tracks = 0
+        thresholds = {
+            'acousticness': 0.40,
+            'danceability': 0.40,
+            'energy': 0.40,
+            'key': 0.10,
+            'instrumentalness': 0.40,
+            'loudness': 0.20,
+            'mode': 0.00,  # Special case for mode (exact match)
+            'tempo': 0.20,
+            'time_signature': 0.25,
+            'valence': 0.20
+        }
         # Step 1: Retrieve the user's playlist vector from the database
         try:
             user_parameters = Vibe_Check_Parameters.objects.get(user=user)
-            playlist_vector = pickle.loads(user_parameters.playlist_vector)  # Convert binary back to NumPy array
+            playlist_df = pickle.loads(user_parameters.playlist_vector)  # Convert binary back to NumPy array
         except Vibe_Check_Parameters.DoesNotExist:
             return False  # No playlist vector found for the user
 
@@ -125,22 +138,49 @@ class Add_Track(APIView):
 
         track_features = audio_features[0]
         
-        # Step 4: Create a vector from the track's audio features
-        track_vector = np.array([[track_features['acousticness'], track_features['danceability'], track_features['energy'], 
-                                track_features['instrumentalness'], track_features['liveness'], 
-                                track_features['loudness'], track_features['speechiness'], 
-                                track_features['tempo'], track_features['valence']]])
+        print(track_features)
 
-        # Step 5: Compute cosine similarity between the track vector and the playlist vector
-        similarity = cosine_similarity(track_vector, playlist_vector.reshape(1,-1))
+        ##############################################################################################################
 
-        # Step 6: Define a threshold for similarity and return True/False
-        threshold = float(env('Vibe_Threshold', default='0.5'))  # Adjust the threshold as per your requirement
-        if similarity[0][0] >= threshold:
-            return True
-        else:
+        for playlist_feature in playlist_df.to_dict('records'):
+            
+            similarity_percentage = self.compare_tracks(playlist_feature, track_features, thresholds)
+        
+            # Check if similarity is greater than or equal to 50%
+            if similarity_percentage >= 50:
+                
+                matching_tracks += 1
+
+        total_tracks = len(playlist_df)
+        
+        threshold = total_tracks * 0.5  # 50% of total tracks
+        ##############################################################################################################
+
+        if matching_tracks >= threshold:
             return False
-
+        else:
+            return True
+    
+    def compare_tracks(self,track_features, comparison_features, thresholds):
+        
+        similarity_count = 0
+        features = thresholds.keys()
+        
+        for feature in features:
+            track_value = track_features[feature]
+            comparison_value = comparison_features[feature]
+            threshold_percentage = thresholds[feature]
+            
+            if self.compare_features(track_value, comparison_value, threshold_percentage):
+                similarity_count += 1
+    
+        # Calculate similarity as a percentage of matching features
+        similarity_percentage = (similarity_count / len(features)) * 100
+        return similarity_percentage
+    def compare_features(self,track_value, comparison_value, threshold_percentage):
+            lower_bound = track_value - (track_value * threshold_percentage)
+            upper_bound = track_value + (track_value * threshold_percentage)
+            return lower_bound <= comparison_value <= upper_bound
 
 class Get_Queue(APIView):
 
