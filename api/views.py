@@ -394,6 +394,8 @@ class SetPlaylistVector(APIView):
             tracks_info = [ (track['track']['id'],track['track']['name'])for track in tracks]
             #############################################################################: add Playlist code here 
             audio_features = self.extract_audio_features(sp,[track_ids[0] for track_ids in tracks_info])
+            if audio_features is None:
+                return Response({"error":"error with playlist features"}, status=status.HTTP_205_RESET_CONTENT)
             df = pd.DataFrame(audio_features)
             
             Vibe_Check_Parameters.objects.update_or_create(
@@ -438,7 +440,10 @@ class SetPlaylistVector(APIView):
         return tracks
 
     def extract_audio_features(self, sp, track_ids):
-        audio_features = sp.audio_features(tracks=track_ids)
+        try:
+            audio_features = sp.audio_features(tracks=track_ids)
+        except:
+            android_features =None
         return audio_features
 
     
