@@ -81,6 +81,12 @@ class CafeQueue():
             return None
         return q[0]
     
+    def remove_track(self,id: int, track_id: int):
+        for i in self.myQueue[id]:
+            if i[1] == track_id:
+                self.myQueue[id].remove(i)
+                return True
+        return False
     def __reduce__(self):
         """
         Serialization helper for deep copying or pickling.

@@ -63,10 +63,14 @@ class Add_Track(APIView):
 
             # Add the new track to the queue
             data = serializer.validated_data  # Now this will work
-            for i in cafe_queue.getqueue():
-                if i['track_id'] == data['track_id']:
-                    return Response({"message":"Track already in queue"}, status=status.HTTP_226_IM_USED)
-            
+            if payload['auth'] == "Admin":
+                for i in cafe_queue.getqueue():
+                    if i['track_id'] == data['track_id']:
+                        if i['id'] == -1:
+                            cafe_queue.remove_track(-1,data['track_id'])
+                        else:
+                            return Response({"message":"Track already in queue"}, status=status.HTTP_226_IM_USED)
+                
             if payload['auth'] == "Cust":
                 if Table_Status_Data.objects.filter(user = user,table_number= payload['tableNum']).first().table_status == False:
                     return Response({"error":"unauthorized"}, status=status.HTTP_401_UNAUTHORIZED)
@@ -74,7 +78,12 @@ class Add_Track(APIView):
                 if self.Vibe_Check(user, track_id):
                     return Response({"message":"Vibe not match"}, status=status.HTTP_403_FORBIDDEN)
                 else :
-                    pass
+                    for i in cafe_queue.getqueue():
+                        if i['track_id'] == data['track_id']:
+                            if i['id'] == -1:
+                                cafe_queue.remove_track(-1,data['track_id'])
+                            else:
+                                return Response({"message":"Track already in queue"}, status=status.HTTP_226_IM_USED)
 
             
      
