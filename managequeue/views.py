@@ -108,7 +108,7 @@ class Add_Track(APIView):
             'energy': 0.40,
             'key': 0.10,
             'instrumentalness': 0.40,
-            'loudness': 0.20,
+            'loudness': 0.200,
             'mode': 0.00,  # Special case for mode (exact match)
             'tempo': 0.20,
             'time_signature': 0.25,
