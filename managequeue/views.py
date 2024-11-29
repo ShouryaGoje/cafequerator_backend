@@ -257,23 +257,7 @@ class Next_Track(APIView):
             cafe_queue = pickle.loads(track_queue.Queue) if track_queue.Queue else cq()
         except Exception as e:
             return Response({"error": f"Failed to load queue: {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        room_name = f"queue_{payload['id']}"
-        print(room_name)
-        channel_layer = get_channel_layer()
-        async_to_sync(channel_layer.group_send)(
-        room_name,
-        {
-            "type": "websocket.message",  # Must match the method name in the consumer
-            "text": "queue updated"
-        }
-        )
-        async_to_sync(channel_layer.group_send)(
-        room_name,
-        {
-            "type": "websocket.message",  # Must match the method name in the consumer
-            "text": "current track updated"
-        }
-        )
+       
         next_track=cafe_queue.get_top()
         if next_track is None:
             return Response({"error": f"Kuch nai hai queue me"}, status=status.HTTP_204_NO_CONTENT)
@@ -303,10 +287,6 @@ class Next_Track(APIView):
         if not user:
             return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
-        # Get or create the user's track queue
-        
-
-        # Deserialize the user's existing queue
         try:
             track_queue= Track_Queue.objects.get(user=user)
             cafe_queue = pickle.loads(track_queue.Queue) if track_queue.Queue else cq()
@@ -316,6 +296,23 @@ class Next_Track(APIView):
         # Serialize the updated queue and save it back to the database
         track_queue.Queue = pickle.dumps(cafe_queue)
         track_queue.save()
+        room_name = f"queue_{payload['id']}"
+        print(room_name)
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+        room_name,
+        {
+            "type": "websocket.message",  # Must match the method name in the consumer
+            "text": "queue updated"
+        }
+        )
+        async_to_sync(channel_layer.group_send)(
+        room_name,
+        {
+            "type": "websocket.message",  # Must match the method name in the consumer
+            "text": "current track updated"
+        }
+        )
         return Response({"message": f"success"}, status=status.HTTP_200_OK)
 
 
